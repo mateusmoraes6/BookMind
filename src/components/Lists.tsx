@@ -1,0 +1,361 @@
+import { useEffect, useState } from 'react';
+import { Plus, List, Edit2, Trash2, BookOpen } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
+
+interface CustomList {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string;
+  color: string;
+}
+
+export default function Lists() {
+  const { user } = useAuth();
+  const [lists, setLists] = useState<CustomList[]>([]);
+  const [books, setBooks] = useState<any[]>([]);
+  const [listBooks, setListBooks] = useState<any>({});
+  const [showModal, setShowModal] = useState(false);
+  const [showAddBooksModal, setShowAddBooksModal] = useState(false);
+  const [selectedList, setSelectedList] = useState<CustomList | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    color: '#8b5cf6',
+  });
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user]);
+
+  const loadData = async () => {
+    if (!user) return;
+
+    const [listsData, booksData, listBooksData] = await Promise.all([
+      supabase.from('custom_lists').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+      supabase.from('books').select('*').eq('user_id', user.id),
+      supabase.from('list_books').select('*, books(*), custom_lists(*)'),
+    ]);
+
+    if (listsData.data) setLists(listsData.data);
+    if (booksData.data) setBooks(booksData.data);
+
+    if (listBooksData.data) {
+      const grouped: any = {};
+      listBooksData.data.forEach((item: any) => {
+        if (!grouped[item.list_id]) {
+          grouped[item.list_id] = [];
+        }
+        grouped[item.list_id].push(item.books);
+      });
+      setListBooks(grouped);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    if (selectedList) {
+      await supabase
+        .from('custom_lists')
+        .update(formData)
+        .eq('id', selectedList.id);
+    } else {
+      await supabase.from('custom_lists').insert({
+        ...formData,
+        user_id: user.id,
+      });
+    }
+
+    setShowModal(false);
+    setSelectedList(null);
+    setFormData({ name: '', description: '', color: '#8b5cf6' });
+    loadData();
+  };
+
+  const handleDelete = async (listId: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta lista?')) return;
+    await supabase.from('custom_lists').delete().eq('id', listId);
+    loadData();
+  };
+
+  const handleEdit = (list: CustomList) => {
+    setSelectedList(list);
+    setFormData({
+      name: list.name,
+      description: list.description || '',
+      color: list.color,
+    });
+    setShowModal(true);
+  };
+
+  const openAddBooks = (list: CustomList) => {
+    setSelectedList(list);
+    setShowAddBooksModal(true);
+  };
+
+  const handleAddBook = async (bookId: string) => {
+    if (!selectedList) return;
+
+    await supabase.from('list_books').insert({
+      list_id: selectedList.id,
+      book_id: bookId,
+    });
+
+    loadData();
+  };
+
+  const handleRemoveBook = async (listId: string, bookId: string) => {
+    await supabase
+      .from('list_books')
+      .delete()
+      .eq('list_id', listId)
+      .eq('book_id', bookId);
+
+    loadData();
+  };
+
+  const getAvailableBooks = () => {
+    if (!selectedList) return [];
+    const currentBooks = listBooks[selectedList.id] || [];
+    const currentBookIds = currentBooks.map((b: any) => b.id);
+    return books.filter(b => !currentBookIds.includes(b.id));
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Listas Personalizadas</h1>
+          <p className="text-slate-600 mt-2">Organize seus livros em coleções customizadas</p>
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
+        >
+          <Plus className="w-5 h-5" />
+          Nova Lista
+        </button>
+      </div>
+
+      {lists.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
+          <List className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-slate-900 mb-2">Nenhuma lista criada</h3>
+          <p className="text-slate-600 mb-6">
+            Crie listas personalizadas para organizar seus livros de forma única
+          </p>
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
+          >
+            <Plus className="w-5 h-5" />
+            Criar Primeira Lista
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {lists.map((list) => {
+            const booksInList = listBooks[list.id] || [];
+            return (
+              <div key={list.id} className="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div className="p-6 border-b border-slate-200">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div
+                        className="w-12 h-12 rounded-lg flex items-center justify-center"
+                        style={{ backgroundColor: `${list.color}20` }}
+                      >
+                        <List className="w-6 h-6" style={{ color: list.color }} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-slate-900">{list.name}</h3>
+                        <p className="text-sm text-slate-600">
+                          {booksInList.length} livro{booksInList.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleEdit(list)}
+                        className="p-2 hover:bg-slate-100 rounded-lg transition"
+                        title="Editar"
+                      >
+                        <Edit2 className="w-4 h-4 text-slate-600" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(list.id)}
+                        className="p-2 hover:bg-red-50 rounded-lg transition"
+                        title="Excluir"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </button>
+                    </div>
+                  </div>
+                  {list.description && (
+                    <p className="text-sm text-slate-600 mt-2">{list.description}</p>
+                  )}
+                </div>
+
+                <div className="p-4">
+                  {booksInList.length === 0 ? (
+                    <div className="text-center py-8">
+                      <BookOpen className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                      <p className="text-sm text-slate-500 mb-3">Lista vazia</p>
+                      <button
+                        onClick={() => openAddBooks(list)}
+                        className="text-sm text-slate-900 hover:underline"
+                      >
+                        Adicionar livros
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2 mb-3">
+                        {booksInList.slice(0, 3).map((book: any) => (
+                          <div
+                            key={book.id}
+                            className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg"
+                          >
+                            <BookOpen className="w-4 h-4 text-slate-400" />
+                            <span className="text-sm text-slate-700 truncate flex-1">{book.title}</span>
+                            <button
+                              onClick={() => handleRemoveBook(list.id, book.id)}
+                              className="p-1 hover:bg-red-50 rounded transition"
+                              title="Remover"
+                            >
+                              <Trash2 className="w-3 h-3 text-red-600" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      {booksInList.length > 3 && (
+                        <p className="text-xs text-slate-500 mb-3">
+                          +{booksInList.length - 3} outros livros
+                        </p>
+                      )}
+                      <button
+                        onClick={() => openAddBooks(list)}
+                        className="w-full py-2 px-4 text-sm text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-lg transition"
+                      >
+                        Adicionar mais livros
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full">
+            <div className="p-6 border-b border-slate-200">
+              <h2 className="text-2xl font-bold text-slate-900">
+                {selectedList ? 'Editar Lista' : 'Nova Lista'}
+              </h2>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Nome *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Descrição</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 resize-none"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Cor</label>
+                <input
+                  type="color"
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  className="w-full h-12 rounded-lg cursor-pointer"
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModal(false);
+                    setSelectedList(null);
+                    setFormData({ name: '', description: '', color: '#8b5cf6' });
+                  }}
+                  className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
+                >
+                  {selectedList ? 'Salvar' : 'Criar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showAddBooksModal && selectedList && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white p-6 border-b border-slate-200 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-slate-900">Adicionar Livros</h2>
+              <button
+                onClick={() => {
+                  setShowAddBooksModal(false);
+                  setSelectedList(null);
+                }}
+                className="text-slate-600 hover:text-slate-900"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              {getAvailableBooks().length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-slate-600">Todos os livros já estão nesta lista</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {getAvailableBooks().map((book) => (
+                    <button
+                      key={book.id}
+                      onClick={() => handleAddBook(book.id)}
+                      className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition text-left"
+                    >
+                      <BookOpen className="w-5 h-5 text-slate-400" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-slate-900 truncate">{book.title}</p>
+                        <p className="text-sm text-slate-600 truncate">{book.author}</p>
+                      </div>
+                      <Plus className="w-5 h-5 text-slate-600" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
