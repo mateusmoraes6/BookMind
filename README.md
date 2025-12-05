@@ -84,8 +84,10 @@ Antes de começar, certifique-se de ter instalado:
 git clone https://github.com/seu-usuario/BookMind.git
 cd BookMind
 ### 2. Instale as dependências
-h
-npm install### 3. Configure o Supabase
+
+npm install
+
+### 3. Configure o Supabase
 
 #### 3.1. Criar projeto no Supabase
 
@@ -151,11 +153,81 @@ npm run dev -> A aplicação estará disponível em `http://localhost:5173`
 
 npm run build -> Os arquivos otimizados estarão na pasta `dist/`
 
-### Preview da Build
+---
 
-npm run preview### Verificação de Tipos
+O projeto utiliza **Row Level Security (RLS)** do Supabase, garantindo que:
+- Cada usuário só acessa seus próprios dados
+- Todas as operações requerem autenticação
+- As políticas de segurança são aplicadas automaticamente
 
-npm run typecheck### Linting
-ash
-npm run lint## 📁 Estrutura do Projeto
+## 🎨 Personalização
+
+### Gêneros Padrão
+
+Os gêneros padrão são criados automaticamente quando um novo usuário faz login pela primeira vez. Para modificar, edite o array `defaultGenres` em `src/contexts/AuthContext.tsx`:
+
+const defaultGenres = [
+  { name: 'Fantasia', color: '#8b5cf6', icon: 'wand-2' },
+  { name: 'Ficção Científica', color: '#3b82f6', icon: 'rocket' },
+  // Adicione mais gêneros aqui
+];
+
+### Tema
+
+O tema dark é o padrão. Os usuários podem alternar entre claro e escuro nas configurações.
+
+## 🐛 Solução de Problemas
+
+### Erro: "Missing Supabase environment variables"
+
+Certifique-se de que o arquivo `.env` existe na raiz do projeto e contém as variáveis corretas.
+
+### Erro: "429 Too Many Requests"
+
+Aguarde alguns minutos antes de tentar novamente. Isso ocorre quando há muitas requisições ao Supabase.
+
+### Gêneros duplicados
+
+Se você encontrar gêneros duplicados, execute esta query no SQL Editor do Supabase:
+
+WITH duplicados AS (
+  SELECT 
+    id,
+    user_id,
+    name,
+    ROW_NUMBER() OVER (
+      PARTITION BY user_id, name 
+      ORDER BY created_at ASC, id ASC
+    ) as row_num
+  FROM genres
+)
+DELETE FROM genres
+WHERE id IN (
+  SELECT id 
+  FROM duplicados 
+  WHERE row_num > 1
+);
+
+## 🤝 Contribuindo
+
+Contribuições são bem-vindas! Sinta-se à vontade para:
+
+1. Fazer um Fork do projeto
+2. Criar uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abrir um Pull Request
+
+## 👨‍💻 Autor
+
+Desenvolvido com ❤️ para amantes de livros
+
+- [Supabase](https://supabase.com/) - Backend e autenticação
+- [React](https://react.dev/) - Framework frontend
+- [Tailwind CSS](https://tailwindcss.com/) - Estilização
+- [Lucide Icons](https://lucide.dev/) - Ícones
+
+---
+
+**Desfrute organizando suas leituras com BookMind! 📚**
 
