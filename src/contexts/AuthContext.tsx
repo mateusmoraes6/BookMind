@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import type { Database } from '../lib/database.types';
 
 interface AuthContextType {
   user: User | null;
@@ -34,11 +35,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .maybeSingle();
 
           if (!profile) {
-            await supabase.from('profiles').insert({
+            type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
+            const profileData: ProfileInsert = {
               id: session.user.id,
               email: session.user.email!,
               full_name: session.user.user_metadata.full_name || null,
-            });
+            };
+            await (supabase.from('profiles') as any).insert(profileData);
 
             await initializeDefaultGenres(session.user.id);
           }
@@ -102,6 +105,18 @@ export function useAuth() {
 }
 
 async function initializeDefaultGenres(userId: string) {
+  // Verificar se já existem gêneros para este usuário
+  const { data: existingGenres } = await supabase
+    .from('genres')
+    .select('id')
+    .eq('user_id', userId)
+    .limit(1);
+
+  // Se já existem gêneros, não criar novamente
+  if (existingGenres && existingGenres.length > 0) {
+    return;
+  }
+
   const defaultGenres = [
     { name: 'Fantasia', color: '#8b5cf6', icon: 'wand-2' },
     { name: 'Ficção Científica', color: '#3b82f6', icon: 'rocket' },
@@ -115,11 +130,14 @@ async function initializeDefaultGenres(userId: string) {
     { name: 'Filosofia', color: '#a855f7', icon: 'brain' },
   ];
 
-  await supabase.from('genres').insert(
-    defaultGenres.map(genre => ({
-      ...genre,
-      user_id: userId,
-      is_default: true,
-    }))
-  );
+  type GenreInsert = Database['public']['Tables']['genres']['Insert'];
+  
+  const genresToInsert: GenreInsert[] = defaultGenres.map(genre => ({
+    ...genre,
+    user_id: userId,
+    is_default: true,
+  }));
+
+  // Usar asserção mais forte para forçar o tipo correto
+  await (supabase.from('genres') as any).insert(genresToInsert);
 }

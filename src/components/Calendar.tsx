@@ -61,11 +61,11 @@ export default function Calendar() {
   };
 
   const getIntensity = (pages: number) => {
-    if (pages === 0) return 'bg-slate-100';
-    if (pages < 10) return 'bg-green-200';
-    if (pages < 25) return 'bg-green-300';
-    if (pages < 50) return 'bg-green-400';
-    return 'bg-green-500';
+    if (pages === 0) return 'bg-slate-100 dark:bg-slate-700/50';
+    if (pages < 10) return 'bg-green-200 dark:bg-green-900/40';
+    if (pages < 25) return 'bg-green-300 dark:bg-green-800/60';
+    if (pages < 50) return 'bg-green-400 dark:bg-green-700/80';
+    return 'bg-green-500 dark:bg-green-600';
   };
 
   const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentMonth);
@@ -79,15 +79,15 @@ export default function Calendar() {
     const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
     const dateStr = date.toISOString().split('T')[0];
     const dayData = heatmapData[dateStr];
-    const intensity = dayData ? getIntensity(dayData.pages) : 'bg-slate-100';
+    const intensity = dayData ? getIntensity(dayData.pages) : 'bg-slate-100 dark:bg-slate-700/50';
 
     days.push(
       <div
         key={day}
-        className={`aspect-square rounded-lg ${intensity} flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-slate-900 transition`}
+        className={`aspect-square rounded-lg ${intensity} flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-slate-900 dark:hover:ring-indigo-500 transition`}
         title={dayData ? `${dayData.pages} páginas lidas` : 'Sem leituras'}
       >
-        <span className="text-sm font-medium text-slate-700">{day}</span>
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{day}</span>
       </div>
     );
   }
@@ -112,67 +112,67 @@ export default function Calendar() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Calendário Literário</h1>
-        <p className="text-slate-600 mt-2">Acompanhe sua consistência de leitura ao longo do tempo</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Calendário Literário</h1>
+        <p className="text-slate-600 dark:text-slate-400 mt-2">Acompanhe sua consistência de leitura ao longo do tempo</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
           <div className="flex items-center gap-3">
             <div className="bg-blue-500 p-3 rounded-lg">
               <CalendarIcon className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-slate-600">Sessões este Mês</p>
-              <p className="text-2xl font-bold text-slate-900">{thisMonthSessions.length}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Sessões este Mês</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{thisMonthSessions.length}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
           <div className="flex items-center gap-3">
             <div className="bg-green-500 p-3 rounded-lg">
               <BookOpen className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-slate-600">Páginas este Mês</p>
-              <p className="text-2xl font-bold text-slate-900">{totalPages}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Páginas este Mês</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalPages}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
           <div className="flex items-center gap-3">
             <div className="bg-purple-500 p-3 rounded-lg">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-slate-600">Média por Sessão</p>
-              <p className="text-2xl font-bold text-slate-900">{avgPages}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Média por Sessão</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{avgPages}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-900 capitalize">{monthName}</h2>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white capitalize">{monthName}</h2>
           <div className="flex gap-2">
             <button
               onClick={() => changeMonth(-1)}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+              className="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition text-slate-600 dark:text-slate-300"
             >
               ←
             </button>
             <button
               onClick={() => setCurrentMonth(new Date())}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+              className="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition text-slate-600 dark:text-slate-300"
             >
               Hoje
             </button>
             <button
               onClick={() => changeMonth(1)}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+              className="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition text-slate-600 dark:text-slate-300"
             >
               →
             </button>
@@ -181,7 +181,7 @@ export default function Calendar() {
 
         <div className="grid grid-cols-7 gap-2 mb-2">
           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day) => (
-            <div key={day} className="text-center text-sm font-medium text-slate-600">
+            <div key={day} className="text-center text-sm font-medium text-slate-600 dark:text-slate-400">
               {day}
             </div>
           ))}
@@ -190,39 +190,39 @@ export default function Calendar() {
         <div className="grid grid-cols-7 gap-2">{days}</div>
 
         <div className="flex items-center gap-4 mt-6 text-sm">
-          <span className="text-slate-600">Menos</span>
+          <span className="text-slate-600 dark:text-slate-400">Menos</span>
           <div className="flex gap-1">
-            <div className="w-4 h-4 bg-slate-100 rounded" />
-            <div className="w-4 h-4 bg-green-200 rounded" />
-            <div className="w-4 h-4 bg-green-300 rounded" />
-            <div className="w-4 h-4 bg-green-400 rounded" />
-            <div className="w-4 h-4 bg-green-500 rounded" />
+            <div className="w-4 h-4 bg-slate-100 dark:bg-slate-700/50 rounded" />
+            <div className="w-4 h-4 bg-green-200 dark:bg-green-900/40 rounded" />
+            <div className="w-4 h-4 bg-green-300 dark:bg-green-800/60 rounded" />
+            <div className="w-4 h-4 bg-green-400 dark:bg-green-700/80 rounded" />
+            <div className="w-4 h-4 bg-green-500 dark:bg-green-600 rounded" />
           </div>
-          <span className="text-slate-600">Mais</span>
+          <span className="text-slate-600 dark:text-slate-400">Mais</span>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="p-6 border-b border-slate-200">
-          <h2 className="text-xl font-bold text-slate-900">Sessões Recentes</h2>
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Sessões Recentes</h2>
         </div>
         <div className="p-6">
           {thisMonthSessions.length === 0 ? (
             <div className="text-center py-8">
-              <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-600">Nenhuma sessão registrada este mês</p>
+              <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-600 dark:text-slate-400">Nenhuma sessão registrada este mês</p>
             </div>
           ) : (
             <div className="space-y-3">
               {thisMonthSessions.slice(0, 10).map((session) => (
-                <div key={session.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                <div key={session.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                   <div className="flex-1">
-                    <p className="font-medium text-slate-900">{session.books.title}</p>
-                    <p className="text-sm text-slate-600 mt-1">
+                    <p className="font-medium text-slate-900 dark:text-white">{session.books.title}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                       {session.pages_read} páginas • {session.duration_minutes} minutos
                     </p>
                   </div>
-                  <div className="text-sm text-slate-600">
+                  <div className="text-sm text-slate-600 dark:text-slate-400">
                     {new Date(session.session_date).toLocaleDateString('pt-BR')}
                   </div>
                 </div>

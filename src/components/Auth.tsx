@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, LogIn, UserPlus } from 'lucide-react';
+import { BookOpen, LogIn, UserPlus, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Auth() {
@@ -8,23 +8,38 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
-    const result = isSignUp
-      ? await signUp(email, password, fullName)
-      : await signIn(email, password);
+    try {
+      const result = isSignUp
+        ? await signUp(email, password, fullName)
+        : await signIn(email, password);
 
-    if (result.error) {
-      setError(result.error.message);
+      if (result.error) {
+        setError(result.message || result.error.message || 'Ocorreu um erro. Tente novamente.');
+      } else if (result.message) {
+        // Sucesso com mensagem (ex: email confirmation necessário)
+        setSuccess(result.message);
+        if (isSignUp) {
+          // Limpar formulário após signup bem-sucedido
+          setEmail('');
+          setPassword('');
+          setFullName('');
+        }
+      }
+    } catch (err) {
+      setError('Ocorreu um erro inesperado. Tente novamente.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -47,7 +62,11 @@ export default function Auth() {
           <div className="flex gap-2 mb-6">
             <button
               type="button"
-              onClick={() => setIsSignUp(false)}
+              onClick={() => {
+                setIsSignUp(false);
+                setError('');
+                setSuccess('');
+              }}
               className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
                 !isSignUp
                   ? 'bg-slate-900 text-white'
@@ -58,7 +77,11 @@ export default function Auth() {
             </button>
             <button
               type="button"
-              onClick={() => setIsSignUp(true)}
+              onClick={() => {
+                setIsSignUp(true);
+                setError('');
+                setSuccess('');
+              }}
               className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
                 isSignUp
                   ? 'bg-slate-900 text-white'
@@ -81,6 +104,7 @@ export default function Auth() {
                   onChange={(e) => setFullName(e.target.value)}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
                   required
+                  disabled={loading}
                 />
               </div>
             )}
@@ -95,6 +119,7 @@ export default function Auth() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -109,7 +134,13 @@ export default function Auth() {
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
                 required
                 minLength={6}
+                disabled={loading}
               />
+              {isSignUp && (
+                <p className="text-xs text-slate-500 mt-1">
+                  Mínimo de 6 caracteres
+                </p>
+              )}
             </div>
 
             {error && (
@@ -118,13 +149,23 @@ export default function Auth() {
               </div>
             )}
 
+            {success && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-green-600">{success}</p>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
-                'Processando...'
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Processando...
+                </>
               ) : isSignUp ? (
                 <>
                   <UserPlus className="w-5 h-5" />

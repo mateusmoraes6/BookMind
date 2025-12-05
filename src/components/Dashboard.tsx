@@ -121,7 +121,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-white"></div>
       </div>
     );
   }
@@ -129,19 +129,19 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-        <p className="text-slate-600 mt-2">Visão geral das suas leituras</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
+        <p className="text-slate-600 dark:text-slate-400 mt-2">Visão geral das suas leituras</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {statCards.map((card, index) => {
           const Icon = card.icon;
           return (
-            <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+            <div key={index} className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-slate-600 font-medium">{card.label}</p>
-                  <p className="text-3xl font-bold text-slate-900 mt-2">{card.value}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">{card.label}</p>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-white mt-2">{card.value}</p>
                 </div>
                 <div className={`${card.color} p-3 rounded-lg`}>
                   <Icon className="w-6 h-6 text-white" />
@@ -152,32 +152,32 @@ export default function Dashboard() {
         })}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="p-6 border-b border-slate-200">
-          <h2 className="text-xl font-bold text-slate-900">Livros Recentes</h2>
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Livros Recentes</h2>
         </div>
         <div className="p-6">
           {recentBooks.length === 0 ? (
             <div className="text-center py-12">
-              <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-600">Nenhum livro cadastrado ainda</p>
-              <p className="text-sm text-slate-500 mt-1">Comece adicionando seus livros à biblioteca</p>
+              <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-600 dark:text-slate-400">Nenhum livro cadastrado ainda</p>
+              <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">Comece adicionando seus livros à biblioteca</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentBooks.map((book) => (
-                <div key={book.id} className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition">
+                <div key={book.id} className="border border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition dark:hover:bg-slate-700/50">
                   <div className="flex gap-3">
                     {book.cover_url ? (
                       <img src={book.cover_url} alt={book.title} className="w-16 h-24 object-cover rounded" />
                     ) : (
-                      <div className="w-16 h-24 bg-slate-200 rounded flex items-center justify-center">
-                        <BookOpen className="w-6 h-6 text-slate-400" />
+                      <div className="w-16 h-24 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center">
+                        <BookOpen className="w-6 h-6 text-slate-400 dark:text-slate-500" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-900 truncate">{book.title}</h3>
-                      <p className="text-sm text-slate-600 truncate">{book.author}</p>
+                      <h3 className="font-semibold text-slate-900 dark:text-white truncate">{book.title}</h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 truncate">{book.author}</p>
                       {book.genres && (
                         <span
                           className="inline-block text-xs px-2 py-1 rounded mt-2"
@@ -188,13 +188,13 @@ export default function Dashboard() {
                       )}
                       {book.status === 'in_progress' && book.total_pages > 0 && (
                         <div className="mt-2">
-                          <div className="flex justify-between text-xs text-slate-600 mb-1">
+                          <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 mb-1">
                             <span>{book.current_page} páginas</span>
                             <span>{Math.round((book.current_page / book.total_pages) * 100)}%</span>
                           </div>
-                          <div className="h-1 bg-slate-200 rounded-full overflow-hidden">
+                          <div className="h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-slate-900 transition-all"
+                              className="h-full bg-slate-900 dark:bg-indigo-500 transition-all"
                               style={{ width: `${(book.current_page / book.total_pages) * 100}%` }}
                             />
                           </div>

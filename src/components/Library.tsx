@@ -117,7 +117,7 @@ export default function Library() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-white"></div>
       </div>
     );
   }
@@ -126,19 +126,19 @@ export default function Library() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Biblioteca</h1>
-          <p className="text-slate-600 mt-2">{filteredBooks.length} livros encontrados</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Biblioteca</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-2">{filteredBooks.length} livros encontrados</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
+          className="flex items-center gap-2 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition"
         >
           <Plus className="w-5 h-5" />
           Adicionar Livro
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -147,15 +147,15 @@ export default function Library() {
               placeholder="Buscar por título ou autor..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
             />
           </div>
           <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-slate-600" />
+            <Filter className="w-5 h-5 text-slate-600 dark:text-slate-400" />
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
             >
               <option value="all">Todos os Status</option>
               <option value="not_started">Não Iniciado</option>
@@ -167,10 +167,10 @@ export default function Library() {
       </div>
 
       {filteredBooks.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
-          <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-slate-900 mb-2">Nenhum livro encontrado</h3>
-          <p className="text-slate-600 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-12 text-center">
+          <BookOpen className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">Nenhum livro encontrado</h3>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
             {searchTerm || filterStatus !== 'all'
               ? 'Tente ajustar seus filtros de busca'
               : 'Comece adicionando seu primeiro livro à biblioteca'}
@@ -178,7 +178,7 @@ export default function Library() {
           {!searchTerm && filterStatus === 'all' && (
             <button
               onClick={() => setShowModal(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition"
             >
               <Plus className="w-5 h-5" />
               Adicionar Primeiro Livro
@@ -192,7 +192,7 @@ export default function Library() {
             return (
               <div
                 key={book.id}
-                className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition group"
+                className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition group"
               >
                 <div className="relative">
                   {book.cover_url ? (
@@ -202,40 +202,40 @@ export default function Library() {
                       className="w-full h-64 object-cover"
                     />
                   ) : (
-                    <div className="w-full h-64 bg-slate-200 flex items-center justify-center">
-                      <BookOpen className="w-16 h-16 text-slate-400" />
+                    <div className="w-full h-64 bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                      <BookOpen className="w-16 h-16 text-slate-400 dark:text-slate-500" />
                     </div>
                   )}
                   <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition">
                     <button
                       onClick={() => handleView(book)}
-                      className="p-2 bg-white rounded-lg shadow-lg hover:bg-slate-50"
+                      className="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-lg hover:bg-slate-50 dark:hover:bg-slate-600"
                       title="Visualizar"
                     >
-                      <Eye className="w-4 h-4 text-slate-700" />
+                      <Eye className="w-4 h-4 text-slate-700 dark:text-slate-200" />
                     </button>
                     <button
                       onClick={() => handleEdit(book)}
-                      className="p-2 bg-white rounded-lg shadow-lg hover:bg-slate-50"
+                      className="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-lg hover:bg-slate-50 dark:hover:bg-slate-600"
                       title="Editar"
                     >
-                      <Edit2 className="w-4 h-4 text-slate-700" />
+                      <Edit2 className="w-4 h-4 text-slate-700 dark:text-slate-200" />
                     </button>
                     <button
                       onClick={() => handleDelete(book.id)}
-                      className="p-2 bg-white rounded-lg shadow-lg hover:bg-red-50"
+                      className="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-lg hover:bg-red-50 dark:hover:bg-red-900/20"
                       title="Excluir"
                     >
-                      <Trash2 className="w-4 h-4 text-red-600" />
+                      <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
                     </button>
                   </div>
                 </div>
 
                 <div className="p-4">
-                  <h3 className="font-semibold text-slate-900 truncate" title={book.title}>
+                  <h3 className="font-semibold text-slate-900 dark:text-white truncate" title={book.title}>
                     {book.title}
                   </h3>
-                  <p className="text-sm text-slate-600 truncate mt-1">{book.author}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 truncate mt-1">{book.author}</p>
 
                   <div className="flex items-center justify-between mt-3">
                     <span className={`text-xs px-2 py-1 rounded-full ${statusBadge.color}`}>
@@ -244,7 +244,7 @@ export default function Library() {
                     {book.personal_rating && (
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                        <span className="text-sm font-medium text-slate-700">{book.personal_rating}</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{book.personal_rating}</span>
                       </div>
                     )}
                   </div>
@@ -262,13 +262,13 @@ export default function Library() {
 
                   {book.status === 'in_progress' && book.total_pages > 0 && (
                     <div className="mt-4">
-                      <div className="flex justify-between text-xs text-slate-600 mb-1">
+                      <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 mb-1">
                         <span>{book.current_page} de {book.total_pages}</span>
                         <span>{Math.round((book.current_page / book.total_pages) * 100)}%</span>
                       </div>
-                      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                      <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-slate-900 transition-all"
+                          className="h-full bg-slate-900 dark:bg-indigo-500 transition-all"
                           style={{ width: `${(book.current_page / book.total_pages) * 100}%` }}
                         />
                       </div>

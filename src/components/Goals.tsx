@@ -184,12 +184,12 @@ export default function Goals() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Metas de Leitura</h1>
-          <p className="text-slate-600 mt-2">Acompanhe seu progresso e conquiste seus objetivos</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Metas de Leitura</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-2">Acompanhe seu progresso e conquiste seus objetivos</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
+          className="flex items-center gap-2 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition"
         >
           <Plus className="w-5 h-5" />
           Nova Meta
@@ -197,15 +197,15 @@ export default function Goals() {
       </div>
 
       {goals.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
-          <Target className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-slate-900 mb-2">Nenhuma meta ativa</h3>
-          <p className="text-slate-600 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-12 text-center">
+          <Target className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">Nenhuma meta ativa</h3>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
             Defina metas de leitura para acompanhar seu progresso e manter a motivação
           </p>
           <button
             onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition"
           >
             <Plus className="w-5 h-5" />
             Criar Primeira Meta
@@ -218,15 +218,15 @@ export default function Goals() {
             const progressData = progress[goal.id] || { current: 0, target: 0, percentage: 0 };
 
             return (
-              <div key={goal.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div key={goal.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="bg-slate-900 p-3 rounded-lg">
+                    <div className="bg-slate-900 dark:bg-indigo-600 p-3 rounded-lg">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900">{getGoalLabel(goal.goal_type)}</h3>
-                      <p className="text-sm text-slate-600">
+                      <h3 className="font-semibold text-slate-900 dark:text-white">{getGoalLabel(goal.goal_type)}</h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
                         {goal.target_value} {getGoalUnit(goal.goal_type)}
                       </p>
                     </div>
@@ -235,32 +235,32 @@ export default function Goals() {
 
                 <div className="mb-4">
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-slate-600">Progresso</span>
-                    <span className="font-semibold text-slate-900">
+                    <span className="text-slate-600 dark:text-slate-400">Progresso</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">
                       {progressData.current} / {progressData.target}
                     </span>
                   </div>
-                  <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-green-500 transition-all"
                       style={{ width: `${progressData.percentage}%` }}
                     />
                   </div>
-                  <p className="text-xs text-slate-500 mt-1 text-right">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 text-right">
                     {Math.round(progressData.percentage)}% concluído
                   </p>
                 </div>
 
                 {progressData.percentage >= 100 && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3 flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-green-600" />
-                    <span className="text-sm font-medium text-green-700">Meta conquistada!</span>
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 mb-3 flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <span className="text-sm font-medium text-green-700 dark:text-green-400">Meta conquistada!</span>
                   </div>
                 )}
 
                 <button
                   onClick={() => handleDeactivate(goal.id)}
-                  className="w-full py-2 px-4 text-sm text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-lg transition"
+                  className="w-full py-2 px-4 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg transition"
                 >
                   Desativar Meta
                 </button>
@@ -272,17 +272,17 @@ export default function Goals() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full">
-            <div className="p-6 border-b border-slate-200">
-              <h2 className="text-2xl font-bold text-slate-900">Nova Meta de Leitura</h2>
+          <div className="bg-white dark:bg-slate-800 rounded-xl max-w-md w-full border border-slate-200 dark:border-slate-700">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Nova Meta de Leitura</h2>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de Meta</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tipo de Meta</label>
                 <select
                   value={formData.goal_type}
                   onChange={(e) => setFormData({ ...formData, goal_type: e.target.value })}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
                 >
                   <option value="daily_pages">Meta Diária de Páginas</option>
                   <option value="monthly_books">Meta Mensal de Livros</option>
@@ -290,14 +290,14 @@ export default function Goals() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Valor da Meta *
                 </label>
                 <input
                   type="number"
                   value={formData.target_value}
                   onChange={(e) => setFormData({ ...formData, target_value: e.target.value })}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
                   required
                   min="1"
                   placeholder={
@@ -314,13 +314,13 @@ export default function Goals() {
                     setShowModal(false);
                     setFormData({ goal_type: 'daily_pages', target_value: '' });
                   }}
-                  className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
+                  className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
+                  className="flex-1 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition"
                 >
                   Criar Meta
                 </button>

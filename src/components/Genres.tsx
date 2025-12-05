@@ -138,12 +138,12 @@ export default function Genres() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Gêneros e Subcategorias</h1>
-          <p className="text-slate-600 mt-2">Organize suas leituras por categorias personalizadas</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Gêneros e Subcategorias</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-2">Organize suas leituras por categorias personalizadas</p>
         </div>
         <button
           onClick={() => setShowGenreModal(true)}
-          className="flex items-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
+          className="flex items-center gap-2 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition"
         >
           <Plus className="w-5 h-5" />
           Novo Gênero
@@ -156,17 +156,17 @@ export default function Genres() {
           const isExpanded = expandedGenres.has(genre.id);
 
           return (
-            <div key={genre.id} className="bg-white rounded-xl shadow-sm border border-slate-200">
+            <div key={genre.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
               <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1">
                   <button
                     onClick={() => toggleGenre(genre.id)}
-                    className="p-1 hover:bg-slate-100 rounded transition"
+                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition"
                   >
                     {isExpanded ? (
-                      <ChevronDown className="w-5 h-5 text-slate-600" />
+                      <ChevronDown className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                     ) : (
-                      <ChevronRight className="w-5 h-5 text-slate-600" />
+                      <ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                     )}
                   </button>
                   <div
@@ -176,8 +176,8 @@ export default function Genres() {
                     <Tag className="w-5 h-5" style={{ color: genre.color }} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-slate-900">{genre.name}</h3>
-                    <p className="text-sm text-slate-600">
+                    <h3 className="font-semibold text-slate-900 dark:text-white">{genre.name}</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
                       {genreSubcategories.length} subcategoria{genreSubcategories.length !== 1 ? 's' : ''}
                     </p>
                   </div>
@@ -185,14 +185,14 @@ export default function Genres() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => openAddSubcategory(genre.id)}
-                    className="p-2 hover:bg-slate-100 rounded-lg transition text-slate-600"
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition text-slate-600 dark:text-slate-400"
                     title="Adicionar subcategoria"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => openEditGenre(genre)}
-                    className="p-2 hover:bg-slate-100 rounded-lg transition text-slate-600"
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition text-slate-600 dark:text-slate-400"
                     title="Editar"
                   >
                     <Edit2 className="w-4 h-4" />
@@ -200,7 +200,7 @@ export default function Genres() {
                   {!genre.is_default && (
                     <button
                       onClick={() => handleDeleteGenre(genre.id)}
-                      className="p-2 hover:bg-red-50 rounded-lg transition text-red-600"
+                      className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition text-red-600 dark:text-red-400"
                       title="Excluir"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -210,28 +210,28 @@ export default function Genres() {
               </div>
 
               {isExpanded && genreSubcategories.length > 0 && (
-                <div className="border-t border-slate-200 p-4 bg-slate-50">
+                <div className="border-t border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-800/50">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                     {genreSubcategories.map((subcategory) => (
                       <div
                         key={subcategory.id}
-                        className="bg-white border border-slate-200 rounded-lg p-3 flex items-center justify-between group hover:shadow-sm transition"
+                        className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg p-3 flex items-center justify-between group hover:shadow-sm transition"
                       >
-                        <span className="text-sm text-slate-700">{subcategory.name}</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-200">{subcategory.name}</span>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
                           <button
                             onClick={() => openEditSubcategory(subcategory)}
-                            className="p-1 hover:bg-slate-100 rounded transition"
+                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-600 rounded transition"
                             title="Editar"
                           >
-                            <Edit2 className="w-3 h-3 text-slate-600" />
+                            <Edit2 className="w-3 h-3 text-slate-600 dark:text-slate-300" />
                           </button>
                           <button
                             onClick={() => handleDeleteSubcategory(subcategory.id)}
-                            className="p-1 hover:bg-red-50 rounded transition"
+                            className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
                             title="Excluir"
                           >
-                            <Trash2 className="w-3 h-3 text-red-600" />
+                            <Trash2 className="w-3 h-3 text-red-600 dark:text-red-400" />
                           </button>
                         </div>
                       </div>
@@ -246,25 +246,25 @@ export default function Genres() {
 
       {showGenreModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full">
-            <div className="p-6 border-b border-slate-200">
-              <h2 className="text-2xl font-bold text-slate-900">
+          <div className="bg-white dark:bg-slate-800 rounded-xl max-w-md w-full border border-slate-200 dark:border-slate-700">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                 {selectedGenre ? 'Editar Gênero' : 'Novo Gênero'}
               </h2>
             </div>
             <form onSubmit={handleSaveGenre} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Nome *</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Nome *</label>
                 <input
                   type="text"
                   value={genreForm.name}
                   onChange={(e) => setGenreForm({ ...genreForm, name: e.target.value })}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Cor</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Cor</label>
                 <input
                   type="color"
                   value={genreForm.color}
@@ -280,13 +280,13 @@ export default function Genres() {
                     setSelectedGenre(null);
                     setGenreForm({ name: '', color: '#6366f1', icon: 'book' });
                   }}
-                  className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
+                  className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
+                  className="flex-1 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition"
                 >
                   {selectedGenre ? 'Salvar' : 'Criar'}
                 </button>
@@ -298,20 +298,20 @@ export default function Genres() {
 
       {showSubcategoryModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full">
-            <div className="p-6 border-b border-slate-200">
-              <h2 className="text-2xl font-bold text-slate-900">
+          <div className="bg-white dark:bg-slate-800 rounded-xl max-w-md w-full border border-slate-200 dark:border-slate-700">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                 {selectedSubcategory ? 'Editar Subcategoria' : 'Nova Subcategoria'}
               </h2>
             </div>
             <form onSubmit={handleSaveSubcategory} className="p-6 space-y-4">
               {!selectedSubcategory && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Gênero *</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Gênero *</label>
                   <select
                     value={subcategoryForm.genre_id}
                     onChange={(e) => setSubcategoryForm({ ...subcategoryForm, genre_id: e.target.value })}
-                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
                     required
                   >
                     <option value="">Selecione um gênero</option>
@@ -324,12 +324,12 @@ export default function Genres() {
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Nome *</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Nome *</label>
                 <input
                   type="text"
                   value={subcategoryForm.name}
                   onChange={(e) => setSubcategoryForm({ ...subcategoryForm, name: e.target.value })}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
                   required
                 />
               </div>
@@ -341,13 +341,13 @@ export default function Genres() {
                     setSelectedSubcategory(null);
                     setSubcategoryForm({ name: '', genre_id: '' });
                   }}
-                  className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
+                  className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
+                  className="flex-1 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition"
                 >
                   {selectedSubcategory ? 'Salvar' : 'Criar'}
                 </button>
