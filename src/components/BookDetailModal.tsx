@@ -101,20 +101,20 @@ export default function BookDetailModal({ book, onClose, onEdit }: BookDetailMod
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="flex gap-6">
+          <div className="flex flex-col md:flex-row gap-6">
             {book.cover_url ? (
               <img
                 src={book.cover_url}
                 alt={book.title}
-                className="w-48 h-72 object-cover rounded-lg shadow-md"
+                className="w-48 h-72 object-cover rounded-lg shadow-md mx-auto md:mx-0"
               />
             ) : (
-              <div className="w-48 h-72 bg-slate-200 rounded-lg flex items-center justify-center">
+              <div className="w-48 h-72 bg-slate-200 rounded-lg flex items-center justify-center mx-auto md:mx-0">
                 <BookOpen className="w-16 h-16 text-slate-400" />
               </div>
             )}
 
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-4 text-center md:text-left">
               <div>
                 <h1 className="text-3xl font-bold text-slate-900">{book.title}</h1>
                 <p className="text-lg text-slate-600 mt-2">{book.author}</p>
@@ -124,7 +124,7 @@ export default function BookDetailModal({ book, onClose, onEdit }: BookDetailMod
                 <p className="text-slate-700">{book.description}</p>
               )}
 
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                 {book.publication_year && (
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-slate-500" />
@@ -162,7 +162,7 @@ export default function BookDetailModal({ book, onClose, onEdit }: BookDetailMod
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-slate-50 rounded-lg p-4">
               <div className="flex items-center gap-2 text-slate-600 mb-1">
                 <TrendingUp className="w-4 h-4" />
