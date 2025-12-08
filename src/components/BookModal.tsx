@@ -79,9 +79,9 @@ export default function BookModal({ book, onClose }: BookModalProps) {
     };
 
     if (book) {
-      await supabase.from('books').update(bookData).eq('id', book.id);
+      await (supabase.from('books') as any).update(bookData).eq('id', book.id);
     } else {
-      await supabase.from('books').insert(bookData);
+      await (supabase.from('books') as any).insert(bookData);
     }
 
     setLoading(false);

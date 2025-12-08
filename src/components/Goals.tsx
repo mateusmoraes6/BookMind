@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Target, Plus, TrendingUp, BookOpen, Calendar, Trophy } from 'lucide-react';
+import { Target, Plus, TrendingUp, Calendar, Trophy } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -18,7 +18,7 @@ export default function Goals() {
   const [progress, setProgress] = useState<any>({});
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
-    goal_type: 'daily_pages',
+    goal_type: 'daily_pages' as 'daily_pages' | 'monthly_books' | 'yearly_books',
     target_value: '',
   });
 
@@ -31,8 +31,8 @@ export default function Goals() {
   const loadGoals = async () => {
     if (!user) return;
 
-    const { data: goalsData } = await supabase
-      .from('reading_goals')
+    const { data: goalsData } = await (supabase
+      .from('reading_goals') as any)
       .select('*')
       .eq('user_id', user.id)
       .eq('is_active', true)
@@ -52,13 +52,13 @@ export default function Goals() {
     for (const goal of goals) {
       if (goal.goal_type === 'daily_pages') {
         const today = new Date().toISOString().split('T')[0];
-        const { data: sessions } = await supabase
-          .from('reading_sessions')
+        const { data: sessions } = await (supabase
+          .from('reading_sessions') as any)
           .select('pages_read')
           .eq('user_id', user.id)
           .eq('session_date', today);
 
-        const totalPages = sessions?.reduce((sum, s) => sum + (s.pages_read || 0), 0) || 0;
+        const totalPages = sessions?.reduce((sum: any, s: any) => sum + (s.pages_read || 0), 0) || 0;
         progressData[goal.id] = {
           current: totalPages,
           target: goal.target_value,
@@ -66,8 +66,8 @@ export default function Goals() {
         };
       } else if (goal.goal_type === 'monthly_books') {
         const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-        const { data: books } = await supabase
-          .from('books')
+        const { data: books } = await (supabase
+          .from('books') as any)
           .select('id')
           .eq('user_id', user.id)
           .eq('status', 'completed')
@@ -81,8 +81,8 @@ export default function Goals() {
         };
       } else if (goal.goal_type === 'yearly_books') {
         const startOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString();
-        const { data: books } = await supabase
-          .from('books')
+        const { data: books } = await (supabase
+          .from('books') as any)
           .select('id')
           .eq('user_id', user.id)
           .eq('status', 'completed')
@@ -119,7 +119,7 @@ export default function Goals() {
       periodEnd = new Date(periodEnd.getFullYear(), 11, 31);
     }
 
-    await supabase.from('reading_goals').insert({
+    await (supabase.from('reading_goals') as any).insert({
       user_id: user.id,
       goal_type: formData.goal_type,
       target_value: parseInt(formData.target_value),
@@ -134,8 +134,8 @@ export default function Goals() {
   };
 
   const handleDeactivate = async (goalId: string) => {
-    await supabase
-      .from('reading_goals')
+    await (supabase
+      .from('reading_goals') as any)
       .update({ is_active: false })
       .eq('id', goalId);
 
@@ -182,14 +182,14 @@ export default function Goals() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Metas de Leitura</h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">Acompanhe seu progresso e conquiste seus objetivos</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition"
+          className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           Nova Meta
@@ -281,7 +281,7 @@ export default function Goals() {
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tipo de Meta</label>
                 <select
                   value={formData.goal_type}
-                  onChange={(e) => setFormData({ ...formData, goal_type: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, goal_type: e.target.value as 'daily_pages' | 'monthly_books' | 'yearly_books' })}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
                 >
                   <option value="daily_pages">Meta Diária de Páginas</option>

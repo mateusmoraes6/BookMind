@@ -39,8 +39,8 @@ export default function Genres() {
     if (!user) return;
 
     const [genresData, subcategoriesData] = await Promise.all([
-      supabase.from('genres').select('*').eq('user_id', user.id).order('name'),
-      supabase.from('subcategories').select('*').eq('user_id', user.id).order('name'),
+      (supabase.from('genres') as any).select('*').eq('user_id', user.id).order('name'),
+      (supabase.from('subcategories') as any).select('*').eq('user_id', user.id).order('name'),
     ]);
 
     if (genresData.data) setGenres(genresData.data);
@@ -62,12 +62,12 @@ export default function Genres() {
     if (!user) return;
 
     if (selectedGenre) {
-      await supabase
-        .from('genres')
+      await (supabase
+        .from('genres') as any)
         .update(genreForm)
         .eq('id', selectedGenre.id);
     } else {
-      await supabase.from('genres').insert({
+      await (supabase.from('genres') as any).insert({
         ...genreForm,
         user_id: user.id,
       });
@@ -84,12 +84,12 @@ export default function Genres() {
     if (!user) return;
 
     if (selectedSubcategory) {
-      await supabase
-        .from('subcategories')
+      await (supabase
+        .from('subcategories') as any)
         .update({ name: subcategoryForm.name })
         .eq('id', selectedSubcategory.id);
     } else {
-      await supabase.from('subcategories').insert({
+      await (supabase.from('subcategories') as any).insert({
         ...subcategoryForm,
         user_id: user.id,
       });
@@ -103,13 +103,13 @@ export default function Genres() {
 
   const handleDeleteGenre = async (genreId: string) => {
     if (!confirm('Tem certeza? Isto removerá todas as subcategorias deste gênero.')) return;
-    await supabase.from('genres').delete().eq('id', genreId);
+    await (supabase.from('genres') as any).delete().eq('id', genreId);
     loadData();
   };
 
   const handleDeleteSubcategory = async (subcategoryId: string) => {
     if (!confirm('Tem certeza que deseja excluir esta subcategoria?')) return;
-    await supabase.from('subcategories').delete().eq('id', subcategoryId);
+    await (supabase.from('subcategories') as any).delete().eq('id', subcategoryId);
     loadData();
   };
 
@@ -136,14 +136,14 @@ export default function Genres() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Gêneros e Subcategorias</h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">Organize suas leituras por categorias personalizadas</p>
         </div>
         <button
           onClick={() => setShowGenreModal(true)}
-          className="flex items-center gap-2 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition"
+          className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           Novo Gênero

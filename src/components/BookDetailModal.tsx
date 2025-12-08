@@ -11,7 +11,6 @@ interface BookDetailModalProps {
 
 export default function BookDetailModal({ book, onClose, onEdit }: BookDetailModalProps) {
   const { user } = useAuth();
-  const [notes, setNotes] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
   const [showAddSession, setShowAddSession] = useState(false);
   const [sessionData, setSessionData] = useState({
@@ -25,21 +24,14 @@ export default function BookDetailModal({ book, onClose, onEdit }: BookDetailMod
   }, [book.id]);
 
   const loadBookData = async () => {
-    const [notesData, sessionsData] = await Promise.all([
-      supabase
-        .from('book_notes')
-        .select('*')
-        .eq('book_id', book.id)
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('reading_sessions')
-        .select('*')
-        .eq('book_id', book.id)
-        .order('session_date', { ascending: false }),
-    ]);
+    // Only load sessions since notes are unused
+    const { data } = await (supabase
+      .from('reading_sessions') as any)
+      .select('*')
+      .eq('book_id', book.id)
+      .order('session_date', { ascending: false });
 
-    if (notesData.data) setNotes(notesData.data);
-    if (sessionsData.data) setSessions(sessionsData.data);
+    if (data) setSessions(data);
   };
 
   const handleAddSession = async (e: React.FormEvent) => {
@@ -49,7 +41,7 @@ export default function BookDetailModal({ book, onClose, onEdit }: BookDetailMod
     const newPage = book.current_page + parseInt(sessionData.pages_read);
 
     await Promise.all([
-      supabase.from('reading_sessions').insert({
+      (supabase.from('reading_sessions') as any).insert({
         user_id: user.id,
         book_id: book.id,
         pages_read: parseInt(sessionData.pages_read),
@@ -59,8 +51,8 @@ export default function BookDetailModal({ book, onClose, onEdit }: BookDetailMod
         notes: sessionData.notes || null,
         session_date: new Date().toISOString().split('T')[0],
       }),
-      supabase
-        .from('books')
+      (supabase
+        .from('books') as any)
         .update({
           current_page: newPage,
           status: newPage >= book.total_pages ? 'completed' : 'in_progress',
