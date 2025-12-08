@@ -35,13 +35,11 @@ export default function Dashboard() {
     if (!user) return;
 
     const [booksData, sessionsData] = await Promise.all([
-      supabase
-        .from('books')
+      (supabase.from('books') as any)
         .select('*, genres(name, color)')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false }),
-      supabase
-        .from('reading_sessions')
+      (supabase.from('reading_sessions') as any)
         .select('*')
         .eq('user_id', user.id)
         .order('session_date', { ascending: false }),
@@ -49,13 +47,13 @@ export default function Dashboard() {
 
     if (booksData.data) {
       const total = booksData.data.length;
-      const inProgress = booksData.data.filter(b => b.status === 'in_progress').length;
-      const completed = booksData.data.filter(b => b.status === 'completed').length;
+      const inProgress = booksData.data.filter((b: any) => b.status === 'in_progress').length;
+      const completed = booksData.data.filter((b: any) => b.status === 'completed').length;
 
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const thisMonth = booksData.data.filter(
-        b => b.completed_at && new Date(b.completed_at) >= startOfMonth
+        (b: any) => b.completed_at && new Date(b.completed_at) >= startOfMonth
       ).length;
 
       setStats(prev => ({
@@ -72,8 +70,8 @@ export default function Dashboard() {
     if (sessionsData.data) {
       const today = new Date().toISOString().split('T')[0];
       const todayPages = sessionsData.data
-        .filter(s => s.session_date === today)
-        .reduce((sum, s) => sum + (s.pages_read || 0), 0);
+        .filter((s: any) => s.session_date === today)
+        .reduce((sum: any, s: any) => sum + (s.pages_read || 0), 0);
 
       const streak = calculateStreak(sessionsData.data);
 
