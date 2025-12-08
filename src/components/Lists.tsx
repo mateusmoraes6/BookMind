@@ -35,9 +35,9 @@ export default function Lists() {
     if (!user) return;
 
     const [listsData, booksData, listBooksData] = await Promise.all([
-      supabase.from('custom_lists').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-      supabase.from('books').select('*').eq('user_id', user.id),
-      supabase.from('list_books').select('*, books(*), custom_lists(*)'),
+      (supabase.from('custom_lists') as any).select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+      (supabase.from('books') as any).select('*').eq('user_id', user.id),
+      (supabase.from('list_books') as any).select('*, books(*), custom_lists(*)'),
     ]);
 
     if (listsData.data) setLists(listsData.data);
@@ -60,12 +60,12 @@ export default function Lists() {
     if (!user) return;
 
     if (selectedList) {
-      await supabase
-        .from('custom_lists')
+      await (supabase
+        .from('custom_lists') as any)
         .update(formData)
         .eq('id', selectedList.id);
     } else {
-      await supabase.from('custom_lists').insert({
+      await (supabase.from('custom_lists') as any).insert({
         ...formData,
         user_id: user.id,
       });
@@ -79,7 +79,7 @@ export default function Lists() {
 
   const handleDelete = async (listId: string) => {
     if (!confirm('Tem certeza que deseja excluir esta lista?')) return;
-    await supabase.from('custom_lists').delete().eq('id', listId);
+    await (supabase.from('custom_lists') as any).delete().eq('id', listId);
     loadData();
   };
 
@@ -101,7 +101,7 @@ export default function Lists() {
   const handleAddBook = async (bookId: string) => {
     if (!selectedList) return;
 
-    await supabase.from('list_books').insert({
+    await (supabase.from('list_books') as any).insert({
       list_id: selectedList.id,
       book_id: bookId,
     });
@@ -110,8 +110,8 @@ export default function Lists() {
   };
 
   const handleRemoveBook = async (listId: string, bookId: string) => {
-    await supabase
-      .from('list_books')
+    await (supabase
+      .from('list_books') as any)
       .delete()
       .eq('list_id', listId)
       .eq('book_id', bookId);
@@ -128,14 +128,14 @@ export default function Lists() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Listas Personalizadas</h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">Organize seus livros em coleções customizadas</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition"
+          className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           Nova Lista
