@@ -30,12 +30,6 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30">
-        <div className="flex items-center gap-2">
-          <div className="bg-slate-900 dark:bg-indigo-600 p-1.5 rounded-lg transition-colors">
-            <BookOpen className="w-5 h-5 text-white" />
-          </div>
-          <span className="font-bold text-lg text-slate-900 dark:text-white">BookMind</span>
-        </div>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition"
@@ -46,6 +40,12 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
             <Menu className="w-6 h-6" />
           )}
         </button>
+        <div className="flex items-center gap-2">
+          <div className="bg-slate-900 dark:bg-indigo-600 p-1.5 rounded-lg transition-colors">
+            <BookOpen className="w-5 h-5 text-white" />
+          </div>
+          <span className="font-bold text-lg text-slate-900 dark:text-white">BookMind</span>
+        </div>
       </div>
 
       {/* Mobile Menu Overlay */}
