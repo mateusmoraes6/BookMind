@@ -11,6 +11,8 @@ import Goals from './components/Goals';
 import Lists from './components/Lists';
 import Calendar from './components/Calendar';
 import Settings from './components/Settings';
+import { InstallPWA } from './components/InstallPWA';
+
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -23,7 +25,7 @@ function AppContent() {
     if (user) {
       // Carregar preferências do usuário, se existirem
       type UserPreferencesRow = Database['public']['Tables']['user_preferences']['Row'];
-      
+
       supabase
         .from('user_preferences')
         .select('theme')
@@ -38,7 +40,7 @@ function AppContent() {
             // Se houver erro ou não houver dados, mantém o tema dark padrão
             return;
           }
-          
+
           // Se houver preferência salva, aplicar o tema escolhido
           const preferences = data as UserPreferencesRow | null;
           if (preferences && preferences.theme) {
@@ -89,6 +91,7 @@ function AppContent() {
   return (
     <Layout activeView={activeView} onViewChange={setActiveView}>
       {renderView()}
+      <InstallPWA />
     </Layout>
   );
 }
