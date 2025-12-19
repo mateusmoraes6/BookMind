@@ -68,7 +68,7 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
             </div>
             <div>
               <h1 className="text-xl font-bold text-slate-900 dark:text-white">BookMind</h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Leituras Inteligentes</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Gerenciador de Leituras</p>
             </div>
           </div>
         </div>

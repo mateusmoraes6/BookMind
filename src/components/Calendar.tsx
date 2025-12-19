@@ -8,6 +8,7 @@ export default function Calendar() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [heatmapData, setHeatmapData] = useState<any>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -17,6 +18,8 @@ export default function Calendar() {
 
   const loadSessions = async () => {
     if (!user) return;
+
+    setLoading(true);
 
     const startOfYear = new Date(currentMonth.getFullYear(), 0, 1).toISOString().split('T')[0];
     const endOfYear = new Date(currentMonth.getFullYear(), 11, 31).toISOString().split('T')[0];
@@ -47,6 +50,8 @@ export default function Calendar() {
       });
       setHeatmapData(heatmap);
     }
+
+    setLoading(false);
   };
 
   const getDaysInMonth = (date: Date) => {
@@ -108,6 +113,14 @@ export default function Calendar() {
 
   const totalPages = thisMonthSessions.reduce((sum, s) => sum + (s.pages_read || 0), 0);
   const avgPages = thisMonthSessions.length > 0 ? Math.round(totalPages / thisMonthSessions.length) : 0;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-white"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

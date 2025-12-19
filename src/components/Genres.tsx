@@ -28,6 +28,7 @@ export default function Genres() {
   const [selectedSubcategory, setSelectedSubcategory] = useState<Subcategory | null>(null);
   const [genreForm, setGenreForm] = useState({ name: '', color: '#6366f1', icon: 'book' });
   const [subcategoryForm, setSubcategoryForm] = useState({ name: '', genre_id: '' });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -38,6 +39,8 @@ export default function Genres() {
   const loadData = async () => {
     if (!user) return;
 
+    setLoading(true);
+
     const [genresData, subcategoriesData] = await Promise.all([
       (supabase.from('genres') as any).select('*').eq('user_id', user.id).order('name'),
       (supabase.from('subcategories') as any).select('*').eq('user_id', user.id).order('name'),
@@ -45,6 +48,8 @@ export default function Genres() {
 
     if (genresData.data) setGenres(genresData.data);
     if (subcategoriesData.data) setSubcategories(subcategoriesData.data);
+
+    setLoading(false);
   };
 
   const toggleGenre = (genreId: string) => {
@@ -133,6 +138,14 @@ export default function Genres() {
   const getGenreSubcategories = (genreId: string) => {
     return subcategories.filter(sub => sub.genre_id === genreId);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-white"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

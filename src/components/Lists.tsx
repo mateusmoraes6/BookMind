@@ -19,6 +19,7 @@ export default function Lists() {
   const [showModal, setShowModal] = useState(false);
   const [showAddBooksModal, setShowAddBooksModal] = useState(false);
   const [selectedList, setSelectedList] = useState<CustomList | null>(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -33,6 +34,8 @@ export default function Lists() {
 
   const loadData = async () => {
     if (!user) return;
+
+    setLoading(true);
 
     const [listsData, booksData, listBooksData] = await Promise.all([
       (supabase.from('custom_lists') as any).select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
@@ -53,6 +56,8 @@ export default function Lists() {
       });
       setListBooks(grouped);
     }
+
+    setLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -125,6 +130,14 @@ export default function Lists() {
     const currentBookIds = currentBooks.map((b: any) => b.id);
     return books.filter(b => !currentBookIds.includes(b.id));
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-white"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
