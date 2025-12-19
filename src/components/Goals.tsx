@@ -17,6 +17,7 @@ export default function Goals() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [progress, setProgress] = useState<any>({});
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     goal_type: 'daily_pages' as 'daily_pages' | 'monthly_books' | 'yearly_books',
     target_value: '',
@@ -31,6 +32,8 @@ export default function Goals() {
   const loadGoals = async () => {
     if (!user) return;
 
+    setLoading(true);
+
     const { data: goalsData } = await (supabase
       .from('reading_goals') as any)
       .select('*')
@@ -40,8 +43,10 @@ export default function Goals() {
 
     if (goalsData) {
       setGoals(goalsData);
-      calculateProgress(goalsData);
+      await calculateProgress(goalsData);
     }
+
+    setLoading(false);
   };
 
   const calculateProgress = async (goals: Goal[]) => {
@@ -179,6 +184,14 @@ export default function Goals() {
         return '';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-white"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

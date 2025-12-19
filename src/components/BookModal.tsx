@@ -18,7 +18,6 @@ export default function BookModal({ book, onClose }: BookModalProps) {
     genre_id: '',
     total_pages: '',
     cover_url: '',
-    isbn: '',
     description: '',
     status: 'not_started',
     current_page: '0',
@@ -35,7 +34,6 @@ export default function BookModal({ book, onClose }: BookModalProps) {
         genre_id: book.genre_id || '',
         total_pages: book.total_pages?.toString() || '',
         cover_url: book.cover_url || '',
-        isbn: book.isbn || '',
         description: book.description || '',
         status: book.status || 'not_started',
         current_page: book.current_page?.toString() || '0',
@@ -71,7 +69,7 @@ export default function BookModal({ book, onClose }: BookModalProps) {
       genre_id: formData.genre_id || null,
       total_pages: formData.total_pages ? parseInt(formData.total_pages) : 0,
       cover_url: formData.cover_url || null,
-      isbn: formData.isbn || null,
+      isbn: null,
       description: formData.description || null,
       status: formData.status,
       current_page: formData.current_page ? parseInt(formData.current_page) : 0,
@@ -97,23 +95,23 @@ export default function BookModal({ book, onClose }: BookModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-900">
+      <div className="bg-white dark:bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-700">
+        <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-6 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
             {book ? 'Editar Livro' : 'Adicionar Livro'}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-lg transition"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition"
           >
-            <X className="w-6 h-6 text-slate-600" />
+            <X className="w-6 h-6 text-slate-600 dark:text-slate-400" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Título *
               </label>
               <input
@@ -121,13 +119,13 @@ export default function BookModal({ book, onClose }: BookModalProps) {
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Autor *
               </label>
               <input
@@ -135,13 +133,13 @@ export default function BookModal({ book, onClose }: BookModalProps) {
                 name="author"
                 value={formData.author}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Ano de Publicação
               </label>
               <input
@@ -149,19 +147,19 @@ export default function BookModal({ book, onClose }: BookModalProps) {
                 name="publication_year"
                 value={formData.publication_year}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Gênero
               </label>
               <select
                 name="genre_id"
                 value={formData.genre_id}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
               >
                 <option value="">Selecione um gênero</option>
                 {genres.map((genre) => (
@@ -173,7 +171,7 @@ export default function BookModal({ book, onClose }: BookModalProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Total de Páginas
               </label>
               <input
@@ -181,19 +179,19 @@ export default function BookModal({ book, onClose }: BookModalProps) {
                 name="total_pages"
                 value={formData.total_pages}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Status
               </label>
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
               >
                 <option value="not_started">Não Iniciado</option>
                 <option value="in_progress">Em Andamento</option>
@@ -202,7 +200,7 @@ export default function BookModal({ book, onClose }: BookModalProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Página Atual
               </label>
               <input
@@ -210,25 +208,12 @@ export default function BookModal({ book, onClose }: BookModalProps) {
                 name="current_page"
                 value={formData.current_page}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                ISBN
-              </label>
-              <input
-                type="text"
-                name="isbn"
-                value={formData.isbn}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 URL da Capa
               </label>
               <input
@@ -237,12 +222,12 @@ export default function BookModal({ book, onClose }: BookModalProps) {
                 value={formData.cover_url}
                 onChange={handleChange}
                 placeholder="https://exemplo.com/capa.jpg"
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Descrição
               </label>
               <textarea
@@ -250,7 +235,7 @@ export default function BookModal({ book, onClose }: BookModalProps) {
                 value={formData.description}
                 onChange={handleChange}
                 rows={4}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 resize-none"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white resize-none"
               />
             </div>
           </div>
@@ -259,14 +244,14 @@ export default function BookModal({ book, onClose }: BookModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
+              className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition font-medium"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium disabled:opacity-50"
+              className="flex-1 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition font-medium disabled:opacity-50"
             >
               {loading ? 'Salvando...' : book ? 'Salvar Alterações' : 'Adicionar Livro'}
             </button>
