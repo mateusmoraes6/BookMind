@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Target, Plus, TrendingUp, Calendar, Trophy, X, CheckCircle2,
+  Target, Plus, TrendingUp, Calendar, Trophy, X, CheckCircle2, Pencil
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -111,6 +111,7 @@ export default function Goals() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [progress, setProgress] = useState<Record<string, ProgressData>>({});
   const [showModal, setShowModal] = useState(false);
+  const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<{ goal_type: GoalType; target_value: string }>({
     goal_type: 'daily_pages',
@@ -199,22 +200,40 @@ export default function Goals() {
         break;
     }
 
-    const { error } = await (supabase.from('reading_goals') as any).insert({
-      user_id: user.id,
-      goal_type: formData.goal_type,
-      target_value: parseInt(formData.target_value),
-      period_start: periodStart.toISOString().split('T')[0],
-      period_end: periodEnd.toISOString().split('T')[0],
-      is_active: true,
-    });
+    if (editingGoalId) {
+      const { error } = await (supabase.from('reading_goals') as any)
+        .update({
+          goal_type: formData.goal_type,
+          target_value: parseInt(formData.target_value),
+          period_start: periodStart.toISOString().split('T')[0],
+          period_end: periodEnd.toISOString().split('T')[0],
+        })
+        .eq('id', editingGoalId);
 
-    if (error) {
-      console.error('Error creating goal:', error);
-      alert(`Erro ao criar meta: ${error.message}`);
-      return;
+      if (error) {
+        console.error('Error updating goal:', error);
+        alert(`Erro ao atualizar meta: ${error.message}`);
+        return;
+      }
+    } else {
+      const { error } = await (supabase.from('reading_goals') as any).insert({
+        user_id: user.id,
+        goal_type: formData.goal_type,
+        target_value: parseInt(formData.target_value),
+        period_start: periodStart.toISOString().split('T')[0],
+        period_end: periodEnd.toISOString().split('T')[0],
+        is_active: true,
+      });
+
+      if (error) {
+        console.error('Error creating goal:', error);
+        alert(`Erro ao criar meta: ${error.message}`);
+        return;
+      }
     }
 
     setShowModal(false);
+    setEditingGoalId(null);
     setFormData({ goal_type: 'daily_pages', target_value: '' });
     loadGoals();
   };
@@ -225,6 +244,16 @@ export default function Goals() {
       .update({ is_active: false })
       .eq('id', goalId);
     loadGoals();
+  };
+
+  // ── Editar meta ─────────────────────────────────────────────────────────────
+  const handleEditClicked = (goal: Goal) => {
+    setEditingGoalId(goal.id);
+    setFormData({
+      goal_type: goal.goal_type,
+      target_value: String(goal.target_value),
+    });
+    setShowModal(true);
   };
 
   // ── Preset rápido ───────────────────────────────────────────────────────────
@@ -361,13 +390,22 @@ export default function Goals() {
                                 </h3>
                               </div>
                             </div>
-                            <button
-                              onClick={() => handleDeactivate(goal.id)}
-                              className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
-                              title="Desativar meta"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => handleEditClicked(goal)}
+                                className="p-1.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition"
+                                title="Editar meta"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeactivate(goal.id)}
+                                className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+                                title="Desativar meta"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
 
                           {/* Anel + números */}
@@ -457,12 +495,18 @@ export default function Goals() {
                     <selectedConfig.icon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-white leading-tight">Nova Meta</h2>
+                    <h2 className="text-xl font-black text-white leading-tight">
+                      {editingGoalId ? 'Editar Meta' : 'Nova Meta'}
+                    </h2>
                     <p className="text-white/80 text-xs font-medium uppercase tracking-wider">{selectedConfig.label}</p>
                   </div>
                 </div>
                 <button
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setEditingGoalId(null);
+                    setFormData({ goal_type: 'daily_pages', target_value: '' });
+                  }}
                   className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
                 >
                   <X className="w-6 h-6" />
@@ -558,7 +602,11 @@ export default function Goals() {
             <div className="p-6 bg-slate-50 dark:bg-slate-800/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-700 flex gap-4 flex-shrink-0">
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setEditingGoalId(null);
+                  setFormData({ goal_type: 'daily_pages', target_value: '' });
+                }}
                 className="flex-1 px-6 py-4 bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-600 transition-all font-bold text-sm"
               >
                 Cancelar
@@ -569,7 +617,7 @@ export default function Goals() {
                 onClick={handleSubmit as any}
                 className={`flex-[1.5] px-6 py-4 bg-gradient-to-r ${selectedConfig.gradient} text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all hover:opacity-90 active:scale-95 shadow-indigo-500/20`}
               >
-                Ativar Meta
+                {editingGoalId ? 'Salvar Alterações' : 'Ativar Meta'}
               </button>
             </div>
           </div>
