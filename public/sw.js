@@ -35,6 +35,9 @@ self.addEventListener('activate', (event) => {
 
 // Interceptação de requisições
 self.addEventListener('fetch', (event) => {
+    // Apenas processa requisições http/https para evitar erro com extensões do chrome
+    if (!event.request.url.startsWith('http')) return;
+
     event.respondWith(
         caches.match(event.request)
             .then((response) => {
