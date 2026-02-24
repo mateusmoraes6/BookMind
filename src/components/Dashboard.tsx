@@ -57,12 +57,38 @@ export default function Dashboard() {
   const [last7Days, setLast7Days] = useState<{ date: string; pages: number }[]>([]);
   const [activeGoals, setActiveGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
+  // Gradiente dinâmico extraído da capa do livro atual
+  const [heroGradient, setHeroGradient] = useState<string>(
+    'linear-gradient(135deg, #3730a3, #4338ca, #6d28d9)'
+  );
 
   useEffect(() => {
     if (user) {
       loadDashboardData();
     }
   }, [user]);
+
+  // ── Extração de cor dominante da capa ──────────────────────────────────────
+  useEffect(() => {
+    if (!currentBook?.cover_url) {
+      setHeroGradient('linear-gradient(135deg, #3730a3, #4338ca, #6d28d9)');
+      return;
+    }
+    extractDominantColors(currentBook.cover_url)
+      .then((colors) => {
+        if (colors.length >= 2) {
+          setHeroGradient(
+            `linear-gradient(135deg, ${colors[0]}, ${colors[1]}${colors[2] ? `, ${colors[2]}` : ''
+            })`
+          );
+        } else {
+          setHeroGradient('linear-gradient(135deg, #3730a3, #4338ca, #6d28d9)');
+        }
+      })
+      .catch(() => {
+        setHeroGradient('linear-gradient(135deg, #3730a3, #4338ca, #6d28d9)');
+      });
+  }, [currentBook?.cover_url]);
 
   const loadDashboardData = async () => {
     if (!user) return;
@@ -150,6 +176,100 @@ export default function Dashboard() {
     }
 
     setLoading(false);
+  };
+
+  // ── Helpers de extração de cor ────────────────────────────────────────────
+  const rgbToHsl = (r: number, g: number, b: number): [number, number, number] => {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+    if (max === min) return [0, 0, l * 100];
+    const d = max - min;
+    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    let h = 0;
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+    return [h * 360, s * 100, l * 100];
+  };
+
+  const extractDominantColors = (imageUrl: string): Promise<string[]> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      // Timeout de segurança
+      const timer = setTimeout(() => resolve([]), 6000);
+
+      img.onload = () => {
+        clearTimeout(timer);
+        try {
+          const W = 80, H = 120;
+          const canvas = document.createElement('canvas');
+          canvas.width = W;
+          canvas.height = H;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) { resolve([]); return; }
+
+          ctx.drawImage(img, 0, 0, W, H);
+          const { data } = ctx.getImageData(0, 0, W, H);
+
+          // Amostrar pixels (a cada 3)
+          const pixels: [number, number, number][] = [];
+          for (let i = 0; i < data.length; i += 4 * 3) {
+            const [r, g, b, a] = [data[i], data[i + 1], data[i + 2], data[i + 3]];
+            // Ignorar pixels muito claros, muito escuros e transparentes
+            if (a < 128) continue;
+            const brightness = (r + g + b) / 3;
+            if (brightness < 20 || brightness > 230) continue;
+            pixels.push([r, g, b]);
+          }
+
+          if (pixels.length === 0) { resolve([]); return; }
+
+          // Bucketing simples: agrupar cores similares
+          const BUCKET = 28;
+          const map = new Map<string, { sumR: number; sumG: number; sumB: number; count: number }>();
+          for (const [r, g, b] of pixels) {
+            const key = `${Math.floor(r / BUCKET)},${Math.floor(g / BUCKET)},${Math.floor(b / BUCKET)}`;
+            const e = map.get(key);
+            if (e) { e.sumR += r; e.sumG += g; e.sumB += b; e.count++; }
+            else map.set(key, { sumR: r, sumG: g, sumB: b, count: 1 });
+          }
+
+          // Top buckets por frequência
+          const dominated = [...map.values()]
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 8)
+            .map(({ sumR, sumG, sumB, count }) => [
+              sumR / count,
+              sumG / count,
+              sumB / count,
+            ] as [number, number, number]);
+
+          // Converter para HSL escuro e saturado (tom da capa, escuro o suficiente para texto)
+          const results = dominated.slice(0, 3).map(([r, g, b]) => {
+            const [h, s] = rgbToHsl(r, g, b);
+            // Fixar leveza baixa (20-22%) e manter saturação vibrante
+            const newL = 19;
+            const newS = Math.min(Math.max(s * 0.85, 38), 85);
+            return `hsl(${Math.round(h)}, ${Math.round(newS)}%, ${Math.round(newL)}%)`;
+          });
+
+          resolve(results);
+        } catch {
+          // CORS ou outro erro: gradiente padrão
+          resolve([]);
+        }
+      };
+
+      img.onerror = () => { clearTimeout(timer); resolve([]); };
+      // Adicionar cache-buster NÃO é necessário; o crossOrigin já lida com isso
+      img.src = imageUrl;
+    });
   };
 
   const calculateStreak = (sessions: ReadingSession[]) => {
@@ -285,10 +405,18 @@ export default function Dashboard() {
 
       {/* ── Hero: Lendo Agora ── */}
       {currentBook && (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-700 via-indigo-600 to-purple-700 p-6 shadow-2xl">
-          {/* Decorações de fundo */}
+        <div
+          className="relative overflow-hidden rounded-2xl p-6 shadow-2xl"
+          style={{
+            background: heroGradient,
+            transition: 'background 0.9s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        >
+          {/* Decorações de fundo — camada de textura suave */}
           <div className="pointer-events-none absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/5" />
           <div className="pointer-events-none absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/5" />
+          {/* Overlay para garantir legibilidade do texto */}
+          <div className="pointer-events-none absolute inset-0 bg-black/20" />
 
           <div className="relative flex gap-5 items-start">
             {/* Capa */}
@@ -306,13 +434,13 @@ export default function Dashboard() {
 
             {/* Infos */}
             <div className="flex-1 min-w-0">
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-indigo-200 bg-white/10 px-2.5 py-1 rounded-full mb-3">
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 bg-white/10 px-2.5 py-1 rounded-full mb-3">
                 📖 Lendo Agora
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight line-clamp-2">
                 {currentBook.title}
               </h2>
-              <p className="text-indigo-200 text-sm mt-1 truncate">{currentBook.author}</p>
+              <p className="text-white/60 text-sm mt-1 truncate">{currentBook.author}</p>
 
               {currentBook.genres && (
                 <span
@@ -421,17 +549,17 @@ export default function Dashboard() {
                   <div
                     title={`${day.pages} páginas`}
                     className={`w-full rounded-md transition-all duration-300 ${day.pages > 0
-                        ? isToday
-                          ? 'bg-gradient-to-t from-indigo-600 to-indigo-400'
-                          : 'bg-gradient-to-t from-indigo-500/60 to-indigo-400/60'
-                        : 'bg-slate-200 dark:bg-slate-700'
+                      ? isToday
+                        ? 'bg-gradient-to-t from-indigo-600 to-indigo-400'
+                        : 'bg-gradient-to-t from-indigo-500/60 to-indigo-400/60'
+                      : 'bg-slate-200 dark:bg-slate-700'
                       }`}
                     style={{ height: `${barHeight}px` }}
                   />
                   <span
                     className={`text-[10px] font-medium capitalize ${isToday
-                        ? 'text-indigo-500 dark:text-indigo-400'
-                        : 'text-slate-400 dark:text-slate-500'
+                      ? 'text-indigo-500 dark:text-indigo-400'
+                      : 'text-slate-400 dark:text-slate-500'
                       }`}
                   >
                     {dayLabel.replace('.', '')}
@@ -612,8 +740,8 @@ export default function Dashboard() {
                             <Star
                               key={i}
                               className={`w-3 h-3 ${i < (book.rating ?? 0)
-                                  ? 'text-amber-400 fill-amber-400'
-                                  : 'text-slate-300 dark:text-slate-600'
+                                ? 'text-amber-400 fill-amber-400'
+                                : 'text-slate-300 dark:text-slate-600'
                                 }`}
                             />
                           ))}
