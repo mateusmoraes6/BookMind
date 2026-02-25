@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Save, Moon, Sun, Bell, Layout } from 'lucide-react';
+import { Save, Moon, Sun, Bell, Layout, Download, Smartphone } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -14,10 +14,13 @@ export default function Settings() {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+    const [isInstallable, setIsInstallable] = useState(false);
+    const [isInstalled, setIsInstalled] = useState(false);
     const [preferences, setPreferences] = useState<UserPreferences>({
         daily_reading_reminder: true,
         reminder_time: '20:00',
-        theme: 'dark', // Mudado de 'light' para 'dark' como padrão
+        theme: 'dark',
         books_per_page: 12,
     });
 
@@ -25,7 +28,37 @@ export default function Settings() {
         if (user) {
             loadPreferences();
         }
+
+        const handleBeforeInstallPrompt = (e: Event) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+            setIsInstallable(true);
+        };
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            setIsInstalled(true);
+        }
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        };
     }, [user]);
+
+    const handleInstallClick = async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                setIsInstalled(true);
+                setIsInstallable(false);
+            }
+            setDeferredPrompt(null);
+        } else {
+            alert('Para instalar o BookMind:\n\nChrome/Edge: Clique nos 3 pontos ⋮ e escolha "Instalar BookMind" ou "Instalar Aplicativo".\n\nSafari (iOS): Toque no ícone de compartilhar (quadrado com seta) e escolha "Adicionar à Tela de Início".');
+        }
+    };
 
     const loadPreferences = async () => {
         if (!user) return;
@@ -202,17 +235,58 @@ export default function Settings() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                        <label className="text-slate-700 dark:text-slate-300">Livros por página</label>
+                        <label className="text-sm font-bold text-slate-700 dark:text-cream-200/60">Livros por página</label>
                         <select
                             value={preferences.books_per_page}
                             onChange={(e) => setPreferences(p => ({ ...p, books_per_page: Number(e.target.value) }))}
-                            className="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
+                            className="px-4 py-2 bg-slate-50 dark:bg-dark-950 border border-slate-200 dark:border-dark-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black transition-all cursor-pointer"
                         >
-                            <option value={8}>8 livros</option>
-                            <option value={12}>12 livros</option>
-                            <option value={24}>24 livros</option>
-                            <option value={48}>48 livros</option>
+                            <option value={8} className="bg-dark-900">8 livros</option>
+                            <option value={12} className="bg-dark-900">12 livros</option>
+                            <option value={24} className="bg-dark-900">24 livros</option>
+                            <option value={48} className="bg-dark-900">48 livros</option>
                         </select>
+                    </div>
+                </section>
+
+                <hr className="border-slate-200 dark:border-dark-800" />
+
+                {/* PWA Section */}
+                <section className="space-y-6 relative z-10">
+                    <div className="flex items-center gap-3 text-lg font-black text-slate-900 dark:text-cream-100 tracking-tight">
+                        <div className="w-10 h-10 bg-cream-100/10 rounded-xl flex items-center justify-center">
+                            <Smartphone className="w-5 h-5 text-cream-100" />
+                        </div>
+                        <h2>Aplicativo</h2>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-dark-950 p-6 rounded-3xl border border-transparent dark:border-dark-800">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                            <div className="flex-1">
+                                <h3 className="font-bold text-slate-900 dark:text-cream-50 mb-1">Versão Web App (PWA)</h3>
+                                <p className="text-sm text-slate-500 dark:text-cream-200/40">
+                                    {isInstalled
+                                        ? 'O BookMind já está instalado em seu dispositivo como um aplicativo nativo.'
+                                        : 'Instale o BookMind no seu celular ou desktop para ter acesso rápido e uma experiência mais fluida.'}
+                                </p>
+                            </div>
+
+                            {!isInstalled && (
+                                <button
+                                    onClick={handleInstallClick}
+                                    className="flex items-center justify-center gap-2 px-6 py-3 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-black/20"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    Instalar Agora
+                                </button>
+                            )}
+
+                            {isInstalled && (
+                                <div className="px-4 py-2 bg-emerald-500/10 text-emerald-500 rounded-xl text-xs font-black uppercase tracking-widest border border-emerald-500/20">
+                                    Já Instalado
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </section>
 
@@ -220,10 +294,10 @@ export default function Settings() {
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition-all shadow-2xl shadow-black/30 font-black text-xs uppercase tracking-[0.2em] transform active:scale-95 disabled:opacity-50"
                     >
-                        <Save className="w-5 h-5" />
-                        {saving ? 'Salvando...' : 'Salvar Alterações'}
+                        <Save className="w-5 h-5 mb-0.5" />
+                        {saving ? 'Salvando...' : 'Salvar Configurações'}
                     </button>
                 </div>
             </div>

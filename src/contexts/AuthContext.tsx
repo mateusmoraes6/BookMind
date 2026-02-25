@@ -125,7 +125,7 @@ async function initializeDefaultGenres(userId: string) {
     { name: 'Suspense', color: '#f59e0b', icon: 'eye' },
     { name: 'Autoajuda', color: '#10b981', icon: 'lightbulb' },
     { name: 'Biografia', color: '#6366f1', icon: 'user' },
-    { name: 'Programação', color: '#06b6d4', icon: 'code' },
+    { name: 'Literatura', color: '#06b6d4', icon: 'book' },
     { name: 'Negócios', color: '#14b8a6', icon: 'briefcase' },
     { name: 'Filosofia', color: '#a855f7', icon: 'brain' },
   ];

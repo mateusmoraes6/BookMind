@@ -57,7 +57,7 @@ export default function Auth() {
             BookMind
           </h1>
           <p className="text-center text-cream-200/50 mb-8 font-medium">
-            Gerenciador Inteligente de Leituras
+            Gerenciador de Leituras
           </p>
 
           {/* Tab buttons */}

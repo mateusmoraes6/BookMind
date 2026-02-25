@@ -67,10 +67,10 @@ export default function Calendar() {
 
   const getIntensity = (pages: number) => {
     if (pages === 0) return 'bg-slate-100 dark:bg-dark-800/50';
-    if (pages < 10) return 'bg-cream-100/20';
-    if (pages < 25) return 'bg-cream-100/40';
-    if (pages < 50) return 'bg-cream-100/70 text-dark-950';
-    return 'bg-cream-100 text-dark-950';
+    if (pages < 10) return 'bg-emerald-500/20';
+    if (pages < 25) return 'bg-emerald-500/40';
+    if (pages < 50) return 'bg-emerald-500/70 text-white';
+    return 'bg-emerald-500 text-white';
   };
 
   const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentMonth);
@@ -89,10 +89,10 @@ export default function Calendar() {
     days.push(
       <div
         key={day}
-        className={`aspect-square rounded-xl ${intensity} flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-cream-100 transition shadow-sm`}
+        className={`aspect-square rounded-xl ${intensity} flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-emerald-500 transition shadow-sm`}
         title={dayData ? `${dayData.pages} páginas lidas` : 'Sem leituras'}
       >
-        <span className={`text-[11px] font-black ${dayData?.pages >= 25 ? 'text-dark-950' : 'text-slate-700 dark:text-cream-100'}`}>{day}</span>
+        <span className={`text-[11px] font-black ${dayData?.pages >= 25 ? 'text-white' : 'text-slate-700 dark:text-cream-100'}`}>{day}</span>
       </div>
     );
   }
@@ -206,15 +206,15 @@ export default function Calendar() {
         <div className="grid grid-cols-7 gap-2">{days}</div>
 
         <div className="flex items-center gap-4 mt-6 text-sm">
-          <span className="text-slate-600 dark:text-cream-200/40">Menos</span>
-          <div className="flex gap-1">
+          <span className="text-slate-600 dark:text-cream-200/40 font-bold uppercase tracking-widest text-[10px]">Menos</span>
+          <div className="flex gap-1.5 px-3 py-2 bg-slate-50 dark:bg-dark-800/30 rounded-xl border border-transparent dark:border-dark-800">
             <div className="w-4 h-4 bg-slate-100 dark:bg-dark-800/50 rounded" />
-            <div className="w-4 h-4 bg-cream-100/20 rounded" />
-            <div className="w-4 h-4 bg-cream-100/40 rounded" />
-            <div className="w-4 h-4 bg-cream-100/70 rounded" />
-            <div className="w-4 h-4 bg-cream-100 rounded" />
+            <div className="w-4 h-4 bg-emerald-500/20 rounded" />
+            <div className="w-4 h-4 bg-emerald-500/40 rounded" />
+            <div className="w-4 h-4 bg-emerald-500/70 rounded" />
+            <div className="w-4 h-4 bg-emerald-500 rounded" />
           </div>
-          <span className="text-slate-600 dark:text-cream-200/40">Mais</span>
+          <span className="text-slate-600 dark:text-cream-200/40 font-bold uppercase tracking-widest text-[10px]">Mais</span>
         </div>
       </div>
 
