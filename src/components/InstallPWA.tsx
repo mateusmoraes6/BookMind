@@ -69,31 +69,33 @@ export function InstallPWA() {
     if (!showInstallBanner) return null;
 
     return (
-        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-md z-50 animate-slide-up">
-            <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg shadow-2xl p-4 text-white">
-                <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 mt-1">
-                        <Download className="w-6 h-6" />
+        <div className="fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:max-w-md z-50 animate-slide-up">
+            <div className="bg-white dark:bg-dark-900 rounded-[2rem] shadow-2xl p-6 border border-slate-200 dark:border-dark-800 backdrop-blur-md relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-cream-100/5 rounded-full -mr-16 -mt-16 blur-2xl transition-all group-hover:bg-cream-100/10" />
+
+                <div className="flex items-start gap-5 relative z-10">
+                    <div className="w-12 h-12 bg-cream-100/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <Download className="w-6 h-6 text-cream-100" />
                     </div>
 
                     <div className="flex-1">
-                        <h3 className="font-semibold text-lg mb-1">
+                        <h3 className="text-lg font-black text-slate-900 dark:text-cream-50 tracking-tight leading-tight mb-2">
                             Instalar BookMind
                         </h3>
-                        <p className="text-sm text-white/90 mb-3">
-                            Instale o app no seu dispositivo para acesso rápido e experiência completa!
+                        <p className="text-sm font-medium text-slate-500 dark:text-cream-200/40 mb-6 leading-relaxed">
+                            Acesse seu universo literário instantaneamente instalando o app no seu dispositivo.
                         </p>
 
-                        <div className="flex gap-2">
+                        <div className="flex gap-3">
                             <button
                                 onClick={handleInstallClick}
-                                className="flex-1 bg-white text-purple-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                                className="flex-1 bg-cream-100 hover:bg-cream-50 text-dark-950 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-black/20 transform active:scale-95"
                             >
-                                Instalar
+                                Instalar Agora
                             </button>
                             <button
                                 onClick={handleDismiss}
-                                className="px-4 py-2 rounded-lg font-medium hover:bg-white/10 transition-colors"
+                                className="px-6 py-3 bg-slate-50 dark:bg-dark-800 text-slate-600 dark:text-cream-200/40 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-dark-700 transition-all transform active:scale-95"
                             >
                                 Agora não
                             </button>
@@ -102,7 +104,7 @@ export function InstallPWA() {
 
                     <button
                         onClick={handleDismiss}
-                        className="flex-shrink-0 p-1 hover:bg-white/10 rounded transition-colors"
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-dark-800 rounded-lg transition-all text-slate-400 dark:text-cream-200/20"
                         aria-label="Fechar"
                     >
                         <X className="w-5 h-5" />

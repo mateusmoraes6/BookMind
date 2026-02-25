@@ -107,9 +107,9 @@ export default function Library() {
 
   const getStatusBadge = (status: string) => {
     const badges = {
-      not_started: { label: 'Não Iniciado', color: 'bg-slate-100 text-slate-700' },
-      in_progress: { label: 'Lendo', color: 'bg-amber-100 text-amber-700' },
-      completed: { label: 'Concluído', color: 'bg-green-100 text-green-700' },
+      not_started: { label: 'Não Iniciado', color: 'bg-slate-100 dark:bg-dark-800 text-slate-700 dark:text-cream-200/40' },
+      in_progress: { label: 'Lendo', color: 'bg-cream-100 text-dark-950' },
+      completed: { label: 'Concluído', color: 'bg-slate-900 dark:bg-white text-white dark:text-dark-950' },
     };
     return badges[status as keyof typeof badges] || badges.not_started;
   };
@@ -117,7 +117,7 @@ export default function Library() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-white"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-cream-100"></div>
       </div>
     );
   }
@@ -126,14 +126,16 @@ export default function Library() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Biblioteca</h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">{filteredBooks.length} livros encontrados</p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-cream-50 leading-tight">Biblioteca</h1>
+          <p className="text-slate-500 dark:text-cream-200/40 mt-1 text-sm font-medium tracking-wide">
+            {filteredBooks.length} livros encontrados
+          </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition w-full sm:w-auto"
+          className="flex items-center justify-center gap-3 px-6 py-3.5 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition-all shadow-xl shadow-black/20 font-black text-xs uppercase tracking-widest w-full sm:w-auto transform active:scale-95"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-5 h-5 mb-0.5" />
           Adicionar Livro
         </button>
       </div>
@@ -147,7 +149,7 @@ export default function Library() {
               placeholder="Buscar por título ou autor..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-dark-950 border border-slate-200 dark:border-dark-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-cream-100 dark:text-cream-50 font-medium transition-all"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -155,12 +157,12 @@ export default function Library() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
+              className="px-4 py-3 bg-slate-50 dark:bg-dark-950 border border-slate-200 dark:border-dark-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-cream-100 dark:text-cream-50 font-medium transition-all"
             >
               <option value="all">Todos os Status</option>
               <option value="not_started">Não Iniciado</option>
-              <option value="in_progress">Lendo</option>
-              <option value="completed">Concluído</option>
+              <option value="in_progress">Lendo Agora</option>
+              <option value="completed">Concluídos</option>
             </select>
           </div>
         </div>
@@ -178,9 +180,9 @@ export default function Library() {
           {!searchTerm && filterStatus === 'all' && (
             <button
               onClick={() => setShowModal(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition shadow-xl shadow-black/20 font-black text-xs uppercase tracking-widest"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-5 h-5 mb-0.5" />
               Adicionar Primeiro Livro
             </button>
           )}
@@ -192,7 +194,7 @@ export default function Library() {
             return (
               <div
                 key={book.id}
-                className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition group"
+                className="bg-white dark:bg-dark-900 rounded-[2rem] shadow-sm border border-slate-200 dark:border-dark-800 overflow-hidden hover:shadow-2xl hover:border-dark-700 transition-all duration-300 group"
               >
                 <div className="relative">
                   {book.cover_url ? (
@@ -202,28 +204,28 @@ export default function Library() {
                       className="w-full h-64 object-cover"
                     />
                   ) : (
-                    <div className="w-full h-64 bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                      <BookOpen className="w-16 h-16 text-slate-400 dark:text-slate-500" />
+                    <div className="w-full h-64 bg-slate-50 dark:bg-dark-800 flex items-center justify-center">
+                      <BookOpen className="w-16 h-16 text-slate-300 dark:text-dark-700" />
                     </div>
                   )}
                   <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition">
                     <button
                       onClick={() => handleView(book)}
-                      className="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-lg hover:bg-slate-50 dark:hover:bg-slate-600"
+                      className="p-2.5 bg-white dark:bg-dark-950 rounded-xl shadow-xl hover:bg-cream-100 dark:hover:bg-cream-100 hover:text-dark-950 dark:hover:text-dark-950 transition-all border border-transparent dark:border-dark-800"
                       title="Visualizar"
                     >
-                      <Eye className="w-4 h-4 text-slate-700 dark:text-slate-200" />
+                      <Eye className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleEdit(book)}
-                      className="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-lg hover:bg-slate-50 dark:hover:bg-slate-600"
+                      className="p-2.5 bg-white dark:bg-dark-950 rounded-xl shadow-xl hover:bg-cream-100 dark:hover:bg-cream-100 hover:text-dark-950 dark:hover:text-dark-950 transition-all border border-transparent dark:border-dark-800"
                       title="Editar"
                     >
-                      <Edit2 className="w-4 h-4 text-slate-700 dark:text-slate-200" />
+                      <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(book.id)}
-                      className="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                      className="p-2.5 bg-white dark:bg-dark-950 rounded-xl shadow-xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-all border border-transparent dark:border-dark-800"
                       title="Excluir"
                     >
                       <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
@@ -232,28 +234,28 @@ export default function Library() {
                 </div>
 
                 <div className="p-4">
-                  <h3 className="font-semibold text-slate-900 dark:text-white truncate" title={book.title}>
+                  <h3 className="font-black text-slate-900 dark:text-cream-50 truncate text-sm" title={book.title}>
                     {book.title}
                   </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 truncate mt-1">{book.author}</p>
+                  <p className="text-[10px] uppercase font-bold text-slate-500 dark:text-cream-200/20 truncate mt-1.5 tracking-wider">{book.author}</p>
 
                   <div className="flex items-center justify-between mt-3">
-                    <span className={`text-xs px-2 py-1 rounded-full ${statusBadge.color}`}>
+                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl ${statusBadge.color}`}>
                       {statusBadge.label}
                     </span>
                     {book.personal_rating && (
                       <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{book.personal_rating}</span>
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        <span className="text-xs font-black text-slate-900 dark:text-cream-100">{book.personal_rating}</span>
                       </div>
                     )}
                   </div>
 
                   {book.genres && (
-                    <div className="mt-3">
+                    <div className="mt-4">
                       <span
-                        className="inline-block text-xs px-2 py-1 rounded"
-                        style={{ backgroundColor: `${book.genres.color}20`, color: book.genres.color }}
+                        className="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border border-current"
+                        style={{ backgroundColor: `${book.genres.color}10`, color: book.genres.color }}
                       >
                         {book.genres.name}
                       </span>
@@ -261,14 +263,14 @@ export default function Library() {
                   )}
 
                   {book.status === 'in_progress' && book.total_pages > 0 && (
-                    <div className="mt-4">
-                      <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 mb-1">
-                        <span>{book.current_page} de {book.total_pages}</span>
-                        <span>{Math.round((book.current_page / book.total_pages) * 100)}%</span>
+                    <div className="mt-6">
+                      <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-cream-200/20 mb-2">
+                        <span>Pág. {book.current_page} / {book.total_pages}</span>
+                        <span className="text-slate-900 dark:text-cream-100">{Math.round((book.current_page / book.total_pages) * 100)}%</span>
                       </div>
-                      <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-slate-100 dark:bg-dark-800 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-slate-900 dark:bg-indigo-500 transition-all"
+                          className="h-full bg-cream-100 transition-all shadow-[0_0_8px_rgba(245,245,244,0.3)]"
                           style={{ width: `${(book.current_page / book.total_pages) * 100}%` }}
                         />
                       </div>

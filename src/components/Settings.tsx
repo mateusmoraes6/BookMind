@@ -98,7 +98,7 @@ export default function Settings() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-white"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-cream-100"></div>
             </div>
         );
     }
@@ -106,15 +106,19 @@ export default function Settings() {
     return (
         <div className="max-w-2xl mx-auto space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Configurações</h1>
+                <h1 className="text-3xl font-black text-slate-900 dark:text-cream-100">Configurações</h1>
                 <p className="text-slate-600 dark:text-slate-400 mt-2">Personalize sua experiência no BookMind</p>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-8">
+            <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-dark-800 p-8 space-y-10 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-cream-100/5 rounded-full -mr-32 -mt-32 blur-[100px]" />
+
                 {/* Appearance */}
-                <section className="space-y-4">
-                    <div className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
-                        <Sun className="w-5 h-5" />
+                <section className="space-y-6 relative z-10">
+                    <div className="flex items-center gap-3 text-lg font-black text-slate-900 dark:text-cream-100 tracking-tight">
+                        <div className="w-10 h-10 bg-cream-100/10 rounded-xl flex items-center justify-center">
+                            <Sun className="w-5 h-5 text-cream-100" />
+                        </div>
                         <h2>Aparência</h2>
                     </div>
 
@@ -124,72 +128,76 @@ export default function Settings() {
                                 setPreferences(p => ({ ...p, theme: 'light' }));
                                 applyTheme('light');
                             }}
-                            className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition ${preferences.theme === 'light'
-                                    ? 'border-slate-900 bg-slate-50 dark:border-slate-400'
-                                    : 'border-slate-200 hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600'
+                            className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition ${preferences.theme === 'light'
+                                ? 'border-cream-100 bg-cream-100 dark:border-dark-800'
+                                : 'border-slate-200 hover:border-slate-300 dark:border-dark-800 dark:hover:border-dark-700'
                                 }`}
                         >
-                            <Sun className="w-6 h-6 text-amber-500" />
-                            <span className="font-medium text-slate-900 dark:text-slate-200">Claro</span>
+                            <Sun className={`w-6 h-6 ${preferences.theme === 'light' ? 'text-dark-950' : 'text-amber-500 dark:text-cream-200'}`} />
+                            <span className={`font-medium ${preferences.theme === 'light' ? 'text-dark-950' : 'text-slate-900 dark:text-cream-100'}`}>Claro</span>
                         </button>
                         <button
                             onClick={() => {
                                 setPreferences(p => ({ ...p, theme: 'dark' }));
                                 applyTheme('dark');
                             }}
-                            className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition ${preferences.theme === 'dark'
-                                    ? 'border-slate-900 bg-slate-900 text-white dark:border-indigo-500'
-                                    : 'border-slate-200 hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600'
+                            className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition ${preferences.theme === 'dark'
+                                ? 'border-dark-950 bg-dark-950 text-white dark:border-cream-100'
+                                : 'border-slate-200 hover:border-slate-300 dark:border-dark-800 dark:hover:border-dark-700'
                                 }`}
                         >
-                            <Moon className="w-6 h-6 text-indigo-400" />
-                            <span className="font-medium text-slate-900 dark:text-slate-200">Escuro</span>
+                            <Moon className={`w-6 h-6 ${preferences.theme === 'dark' ? 'text-cream-100' : 'text-indigo-400 dark:text-cream-200'}`} />
+                            <span className={`font-medium ${preferences.theme === 'dark' ? 'text-cream-100' : 'text-slate-900 dark:text-cream-100'}`}>Escuro</span>
                         </button>
                     </div>
                 </section>
 
-                <hr className="border-slate-200 dark:border-slate-700" />
+                <hr className="border-slate-200 dark:border-dark-800" />
 
                 {/* Notifications */}
-                <section className="space-y-4">
-                    <div className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
-                        <Bell className="w-5 h-5" />
+                <section className="space-y-6 relative z-10">
+                    <div className="flex items-center gap-3 text-lg font-black text-slate-900 dark:text-cream-100 tracking-tight">
+                        <div className="w-10 h-10 bg-cream-100/10 rounded-xl flex items-center justify-center">
+                            <Bell className="w-5 h-5 text-cream-100" />
+                        </div>
                         <h2>Notificações</h2>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         <div className="flex items-center justify-between">
-                            <label className="text-slate-700 dark:text-slate-300">Lembrete diário de leitura</label>
+                            <label className="text-sm font-bold text-slate-700 dark:text-cream-200/60">Lembrete diário de leitura</label>
                             <button
                                 onClick={() => setPreferences(p => ({ ...p, daily_reading_reminder: !p.daily_reading_reminder }))}
-                                className={`w-12 h-6 rounded-full transition-colors relative ${preferences.daily_reading_reminder ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'
+                                className={`w-14 h-7 rounded-full transition-all relative ${preferences.daily_reading_reminder ? 'bg-cream-100' : 'bg-slate-200 dark:bg-dark-800'
                                     }`}
                             >
-                                <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${preferences.daily_reading_reminder ? 'translate-x-6' : 'translate-x-0'
+                                <div className={`absolute top-1 left-1 w-5 h-5 rounded-full transition-transform duration-300 shadow-sm ${preferences.daily_reading_reminder ? 'translate-x-7 bg-dark-950' : 'translate-x-0 bg-white'
                                     }`} />
                             </button>
                         </div>
 
                         {preferences.daily_reading_reminder && (
-                            <div className="flex items-center justify-between">
-                                <label className="text-slate-700 dark:text-slate-300">Horário do lembrete</label>
+                            <div className="flex items-center justify-between bg-slate-50 dark:bg-dark-950 p-4 rounded-2xl border border-transparent dark:border-dark-800">
+                                <label className="text-sm font-bold text-slate-700 dark:text-cream-200/60">Horário do lembrete</label>
                                 <input
                                     type="time"
                                     value={preferences.reminder_time}
                                     onChange={(e) => setPreferences(p => ({ ...p, reminder_time: e.target.value }))}
-                                    className="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
+                                    className="px-4 py-2 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black transition-all"
                                 />
                             </div>
                         )}
                     </div>
                 </section>
 
-                <hr className="border-slate-200 dark:border-slate-700" />
+                <hr className="border-slate-100 dark:border-dark-800" />
 
                 {/* Interface */}
-                <section className="space-y-4">
-                    <div className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
-                        <Layout className="w-5 h-5" />
+                <section className="space-y-6 relative z-10">
+                    <div className="flex items-center gap-3 text-lg font-black text-slate-900 dark:text-cream-100 tracking-tight">
+                        <div className="w-10 h-10 bg-cream-100/10 rounded-xl flex items-center justify-center">
+                            <Layout className="w-5 h-5 text-cream-100" />
+                        </div>
                         <h2>Interface</h2>
                     </div>
 

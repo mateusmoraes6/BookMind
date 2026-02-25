@@ -36,8 +36,8 @@ const GOAL_CONFIGS: Record<
     unit: 'páginas',
     period: 'Diária',
     icon: TrendingUp,
-    color: '#a78bfa',
-    gradient: 'from-violet-500 to-purple-600',
+    color: '#a855f7',
+    gradient: 'from-violet-400 to-purple-600',
     emoji: '📄',
   },
   monthly_books: {
@@ -92,7 +92,7 @@ function ProgressRing({
       <circle
         cx={size / 2} cy={size / 2} r={r}
         fill="none" stroke="currentColor" strokeWidth={strokeWidth}
-        className="text-slate-200 dark:text-slate-700"
+        className="text-slate-200 dark:text-dark-800"
       />
       <circle
         cx={size / 2} cy={size / 2} r={r}
@@ -265,8 +265,8 @@ export default function Goals() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-10 w-10 border-2 border-indigo-500 border-t-transparent" />
-          <p className="text-sm text-slate-400">Carregando metas...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-cream-100 border-t-transparent" />
+          <p className="text-sm text-slate-400 dark:text-cream-200/30">Carregando metas...</p>
         </div>
       </div>
     );
@@ -285,14 +285,14 @@ export default function Goals() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Metas de Leitura</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
+          <h1 className="text-3xl font-black text-slate-900 dark:text-cream-50">Metas de Leitura</h1>
+          <p className="text-slate-500 dark:text-cream-200/40 mt-1 text-sm font-medium">
             {goals.length} meta{goals.length !== 1 ? 's' : ''} ativa{goals.length !== 1 ? 's' : ''} · conquiste seus objetivos
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg shadow-indigo-500/20 font-medium w-full sm:w-auto"
+          className="flex items-center justify-center gap-2 px-5 py-3 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition-all shadow-xl shadow-black/20 font-black text-xs uppercase tracking-widest w-full sm:w-auto transform active:scale-95"
         >
           <Plus className="w-4 h-4" />
           Nova Meta
@@ -301,14 +301,15 @@ export default function Goals() {
 
       {/* ── Estado vazio ── */}
       {goals.length === 0 ? (
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-12 text-center">
-          <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Target className="w-8 h-8 text-indigo-500" />
+        <div className="bg-white dark:bg-dark-900 rounded-3xl border border-slate-200 dark:border-dark-800 p-12 text-center relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-cream-100/5 rounded-full -mr-16 -mt-16 blur-3xl" />
+          <div className="relative z-10 w-16 h-16 bg-cream-100/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-cream-100/10">
+            <Target className="w-8 h-8 text-cream-100" />
           </div>
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+          <h3 className="text-xl font-black text-slate-900 dark:text-cream-100 mb-2">
             Nenhuma meta ativa
           </h3>
-          <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto text-sm">
+          <p className="text-slate-500 dark:text-cream-200/40 mb-8 max-w-sm mx-auto text-sm font-medium">
             Crie micro-metas diárias e semanais para manter o ritmo e celebrar cada conquista!
           </p>
           {/* Sugestões rápidas no empty state */}
@@ -317,7 +318,7 @@ export default function Goals() {
               <button
                 key={p.label}
                 onClick={() => { applyPreset(p); setShowModal(true); }}
-                className="text-sm px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition font-medium"
+                className="text-xs px-4 py-2 bg-slate-100 dark:bg-dark-800 text-slate-700 dark:text-cream-100 rounded-xl hover:bg-cream-100 dark:hover:bg-cream-100 hover:text-dark-950 dark:hover:text-dark-950 transition-all font-bold uppercase tracking-wider border border-transparent dark:border-dark-700"
               >
                 {p.emoji} {p.label}
               </button>
@@ -325,7 +326,7 @@ export default function Goals() {
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition font-medium"
+            className="inline-flex items-center gap-3 px-8 py-4 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition shadow-xl shadow-black/20 font-black text-xs uppercase tracking-widest"
           >
             <Plus className="w-4 h-4" />
             Criar Primeira Meta
@@ -342,12 +343,12 @@ export default function Goals() {
 
             return (
               <section key={period}>
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-3 mb-6">
                   <span className="text-base">{periodEmoji}</span>
-                  <h2 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                  <h2 className="text-xs font-black text-slate-500 dark:text-cream-200/30 uppercase tracking-[0.2em]">
                     {period}
                   </h2>
-                  <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+                  <div className="flex-1 h-px bg-slate-100 dark:bg-dark-800" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -360,9 +361,9 @@ export default function Goals() {
                     return (
                       <div
                         key={goal.id}
-                        className={`relative bg-white dark:bg-slate-800 rounded-2xl border transition-all duration-300 overflow-hidden ${done
-                          ? 'border-green-400/50 dark:border-green-500/40 shadow-lg shadow-green-500/10'
-                          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md'
+                        className={`relative bg-white dark:bg-dark-900 rounded-3xl border transition-all duration-300 overflow-hidden group ${done
+                          ? 'border-green-400/50 dark:border-green-500/20 shadow-xl shadow-green-500/5'
+                          : 'border-slate-200 dark:border-dark-800 hover:border-slate-300 dark:hover:border-dark-700 hover:shadow-2xl'
                           }`}
                       >
                         {/* Barra de cor no topo */}
@@ -382,25 +383,25 @@ export default function Goals() {
                                 <Icon className="w-5 h-5" style={{ color: cfg.color }} />
                               </div>
                               <div>
-                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                                <p className="text-[10px] font-black text-slate-400 dark:text-cream-200/30 uppercase tracking-widest mb-0.5">
                                   {cfg.emoji} {cfg.period}
                                 </p>
-                                <h3 className="font-bold text-slate-900 dark:text-white text-sm leading-tight">
+                                <h3 className="font-black text-slate-900 dark:text-cream-50 text-sm leading-tight">
                                   {cfg.label}
                                 </h3>
                               </div>
                             </div>
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1.5">
                               <button
                                 onClick={() => handleEditClicked(goal)}
-                                className="p-1.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition"
+                                className="p-2 text-slate-400 hover:text-dark-950 hover:bg-cream-100/80 dark:hover:text-dark-950 dark:hover:bg-cream-100 transition-all rounded-xl"
                                 title="Editar meta"
                               >
                                 <Pencil className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={() => handleDeactivate(goal.id)}
-                                className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10 transition-all rounded-xl"
                                 title="Desativar meta"
                               >
                                 <X className="w-3.5 h-3.5" />
@@ -429,12 +430,12 @@ export default function Goals() {
                             <div className="flex-1">
                               <div className="flex items-baseline gap-1 mb-1">
                                 <span
-                                  className="text-3xl font-black"
+                                  className="text-4xl font-black tracking-tighter"
                                   style={{ color: done ? '#22c55e' : cfg.color }}
                                 >
                                   {p.current}
                                 </span>
-                                <span className="text-slate-400 dark:text-slate-500 text-sm font-medium">
+                                <span className="text-slate-400 dark:text-cream-200/20 text-xs font-bold uppercase tracking-widest mb-1.5 ml-1">
                                   / {p.target} {cfg.unit}
                                 </span>
                               </div>
@@ -458,10 +459,10 @@ export default function Goals() {
 
                           {/* Badge de conquista */}
                           {done && (
-                            <div className="mt-4 flex items-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-xl px-3 py-2">
+                            <div className="mt-6 flex items-center gap-3 bg-green-500/5 dark:bg-green-500/10 border border-green-500/20 rounded-2xl px-4 py-3">
                               <Trophy className="w-4 h-4 text-green-500 flex-shrink-0" />
-                              <span className="text-xs font-semibold text-green-700 dark:text-green-400">
-                                Parabéns! Meta conquistada!
+                              <span className="text-[10px] font-black uppercase tracking-widest text-green-600 dark:text-green-400">
+                                Meta conquistada!
                               </span>
                               <span className="ml-auto text-base">🎉</span>
                             </div>
@@ -483,7 +484,7 @@ export default function Goals() {
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
           onClick={(e) => e.target === e.currentTarget && setShowModal(false)}
         >
-          <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-lg border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] w-full max-w-lg border border-slate-200 dark:border-dark-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
             {/* Header com Gradiente */}
             <div className={`bg-gradient-to-r ${selectedConfig.gradient} p-6 flex-shrink-0 relative overflow-hidden`}>
               {/* Decorativo */}
@@ -515,10 +516,10 @@ export default function Goals() {
             </div>
 
             {/* Conteúdo com Scroll */}
-            <div className="overflow-y-auto flex-1 p-6 space-y-8 custom-scrollbar bg-white dark:bg-slate-800">
+            <div className="overflow-y-auto flex-1 p-8 space-y-10 custom-scrollbar bg-white dark:bg-dark-950">
               {/* Seção 1: Presets */}
               <div>
-                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-4">
+                <p className="text-[10px] font-black text-slate-400 dark:text-cream-200/20 uppercase tracking-[0.3em] mb-6">
                   ⚡ Sugestões Rápidas
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -527,9 +528,9 @@ export default function Goals() {
                       key={p.label}
                       type="button"
                       onClick={() => applyPreset(p)}
-                      className={`text-[13px] px-4 py-2 rounded-xl font-bold transition-all ${formData.goal_type === p.type && formData.target_value === String(p.value)
-                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 scale-105'
-                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 border border-transparent'
+                      className={`text-[11px] px-5 py-2.5 rounded-2xl font-black uppercase tracking-wider transition-all border ${formData.goal_type === p.type && formData.target_value === String(p.value)
+                        ? 'bg-cream-100 text-dark-950 border-cream-100 shadow-xl shadow-black/40 scale-105'
+                        : 'bg-slate-50 dark:bg-dark-900 text-slate-500 dark:text-cream-200/30 hover:bg-dark-800 dark:hover:bg-dark-800 hover:text-cream-100 dark:hover:text-cream-100 border-slate-100 dark:border-dark-800'
                         }`}
                     >
                       {p.emoji} {p.label}
@@ -540,7 +541,7 @@ export default function Goals() {
 
               {/* Seção 2: Escolha de Tipo */}
               <div>
-                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-4">
+                <p className="text-[10px] font-black text-slate-400 dark:text-cream-200/20 uppercase tracking-[0.3em] mb-6">
                   🎯 Personalizar Objetivo
                 </p>
                 <div className="grid grid-cols-2 gap-3">
@@ -550,9 +551,9 @@ export default function Goals() {
                         key={type}
                         type="button"
                         onClick={() => setFormData((f) => ({ ...f, goal_type: type }))}
-                        className={`flex flex-col gap-2 p-3.5 rounded-2xl border-2 text-left transition-all group ${formData.goal_type === type
-                          ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20'
-                          : 'border-slate-100 dark:border-slate-700/50 hover:border-slate-200 dark:hover:border-slate-600 bg-slate-50/30 dark:bg-slate-800/20'
+                        className={`flex flex-col gap-3 p-4 rounded-3xl border-2 text-left transition-all group relative overflow-hidden ${formData.goal_type === type
+                          ? 'border-cream-100 bg-cream-100/5'
+                          : 'border-slate-100 dark:border-dark-800 hover:border-dark-700 bg-slate-50/50 dark:bg-black/20'
                           }`}
                       >
                         <div
@@ -562,10 +563,10 @@ export default function Goals() {
                           <cfg.icon className="w-5 h-5" style={{ color: cfg.color }} />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                          <p className={`text-sm font-black transition-colors ${formData.goal_type === type ? 'text-cream-100' : 'text-slate-900 dark:text-cream-200/50'}`}>
                             {cfg.label}
                           </p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{cfg.period}</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-cream-200/20 mt-1">{cfg.period}</p>
                         </div>
                       </button>
                     )
@@ -575,23 +576,23 @@ export default function Goals() {
 
               {/* Seção 3: Valor */}
               <div>
-                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-4">
+                <p className="text-[10px] font-black text-slate-400 dark:text-cream-200/20 uppercase tracking-[0.3em] mb-6">
                   🔢 Valor da Meta
                 </p>
                 <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors">
-                    <Target className="w-5 h-5" />
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-cream-200/20 group-focus-within:text-cream-100 transition-colors">
+                    <Target className="w-5 h-5 shadow-sm" />
                   </div>
                   <input
                     type="number"
                     value={formData.target_value}
                     onChange={(e) => setFormData((f) => ({ ...f, target_value: e.target.value }))}
-                    className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:text-white text-xl font-bold transition-all shadow-inner"
+                    className="w-full pl-14 pr-6 py-5 bg-slate-50 dark:bg-black/40 border-2 border-slate-100 dark:border-dark-800 rounded-[2rem] focus:outline-none focus:border-cream-100 focus:ring-4 focus:ring-cream-100/5 dark:text-cream-100 text-2xl font-black transition-all shadow-inner placeholder-dark-800"
                     required
                     min="1"
                     placeholder={`Ex: ${selectedConfig.unit === 'páginas' ? '30' : '2'}`}
                   />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500 uppercase tracking-wider">
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 dark:text-cream-200/20 uppercase tracking-[0.2em]">
                     {selectedConfig.unit}
                   </div>
                 </div>
@@ -599,7 +600,7 @@ export default function Goals() {
             </div>
 
             {/* Footer Fixo */}
-            <div className="p-6 bg-slate-50 dark:bg-slate-800/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-700 flex gap-4 flex-shrink-0">
+            <div className="p-8 bg-slate-50 dark:bg-dark-900 backdrop-blur-md border-t border-slate-200 dark:border-dark-800 flex gap-4 flex-shrink-0">
               <button
                 type="button"
                 onClick={() => {
@@ -607,7 +608,7 @@ export default function Goals() {
                   setEditingGoalId(null);
                   setFormData({ goal_type: 'daily_pages', target_value: '' });
                 }}
-                className="flex-1 px-6 py-4 bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-600 transition-all font-bold text-sm"
+                className="flex-1 px-6 py-4 bg-white dark:bg-dark-800 text-slate-600 dark:text-cream-200/50 border border-slate-200 dark:border-dark-800 rounded-2xl hover:bg-slate-100 dark:hover:bg-dark-700 transition-all font-bold text-sm"
               >
                 Cancelar
               </button>
@@ -615,7 +616,7 @@ export default function Goals() {
                 type="submit"
                 form="goal-form"
                 onClick={handleSubmit as any}
-                className={`flex-[1.5] px-6 py-4 bg-gradient-to-r ${selectedConfig.gradient} text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all hover:opacity-90 active:scale-95 shadow-indigo-500/20`}
+                className={`flex-[1.5] px-6 py-4 bg-gradient-to-r ${selectedConfig.gradient} text-dark-950 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl transition-all hover:opacity-90 active:scale-95 shadow-black/40`}
               >
                 {editingGoalId ? 'Salvar Alterações' : 'Ativar Meta'}
               </button>

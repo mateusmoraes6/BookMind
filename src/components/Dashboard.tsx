@@ -344,7 +344,7 @@ export default function Dashboard() {
       label: 'Páginas Hoje',
       value: stats.pagesReadToday,
       icon: TrendingUp,
-      gradient: 'from-violet-600 to-purple-400',
+      gradient: 'from-violet-500 to-purple-600',
       glow: 'bg-violet-500/10 border-violet-500/20',
     },
     {
@@ -397,8 +397,8 @@ export default function Dashboard() {
     <div className="space-y-6 pb-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
+        <h1 className="text-3xl font-black text-slate-900 dark:text-cream-50 leading-tight">Dashboard</h1>
+        <p className="text-slate-500 dark:text-cream-200/40 mt-1 text-sm font-medium tracking-wide">
           Visão geral das suas leituras
         </p>
       </div>
@@ -458,19 +458,19 @@ export default function Dashboard() {
               {/* Barra de progresso */}
               {currentBook.total_pages > 0 && (
                 <div className="mt-4">
-                  <div className="flex justify-between text-sm text-indigo-200 mb-2">
-                    <span>
+                  <div className="flex justify-between text-sm text-white/70 mb-2">
+                    <span className="font-medium">
                       Página {currentBook.current_page} de {currentBook.total_pages}
                     </span>
-                    <span className="font-bold text-white">{currentProgress}%</span>
+                    <span className="font-black text-white">{currentProgress}%</span>
                   </div>
-                  <div className="h-2.5 bg-white/20 rounded-full overflow-hidden">
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden backdrop-blur-md">
                     <div
-                      className="h-full bg-white rounded-full transition-all duration-700"
+                      className="h-full bg-white rounded-full transition-all duration-700 shadow-[0_0_10px_rgba(255,255,255,0.3)]"
                       style={{ width: `${currentProgress}%` }}
                     />
                   </div>
-                  <p className="text-xs text-indigo-300 mt-1.5">
+                  <p className="text-xs text-white/50 mt-2 font-medium">
                     {currentBook.total_pages - currentBook.current_page} páginas restantes
                   </p>
                 </div>
@@ -487,17 +487,17 @@ export default function Dashboard() {
           return (
             <div
               key={i}
-              className={`${card.glow} border rounded-xl p-4 hover:scale-[1.03] hover:shadow-lg transition-all duration-200 dark:bg-slate-800/60 bg-white cursor-default`}
+              className={`${card.glow} border rounded-2xl p-4 hover:scale-[1.03] hover:shadow-xl transition-all duration-300 dark:bg-dark-900/60 bg-white cursor-default group`}
             >
               <div
-                className={`inline-flex p-2 rounded-lg bg-gradient-to-br ${card.gradient} mb-3 shadow-sm`}
+                className={`inline-flex p-2 rounded-xl bg-gradient-to-br ${card.gradient} mb-3 shadow-md`}
               >
                 <Icon className="w-4 h-4 text-white" />
               </div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white leading-none">
+              <p className="text-2xl font-black text-slate-900 dark:text-cream-50 leading-none">
                 {card.value}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium leading-tight">
+              <p className="text-[10px] text-slate-500 dark:text-cream-200/40 mt-2 font-bold uppercase tracking-wider leading-tight">
                 {card.label}
               </p>
             </div>
@@ -508,17 +508,20 @@ export default function Dashboard() {
       {/* ── Atividade + Metas ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Widget de Atividade — últimos 7 dias */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 shadow-sm">
-                <BarChart2 className="w-4 h-4 text-white" />
+        <div className="bg-white dark:bg-dark-900 rounded-2xl p-6 border border-slate-200 dark:border-dark-800 shadow-sm relative overflow-hidden">
+          {/* Decorativo discreto */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-cream-100/5 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
+
+          <div className="flex items-center justify-between mb-8 relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-dark-800 to-dark-950 shadow-lg border border-dark-700">
+                <BarChart2 className="w-4 h-4 text-cream-100" />
               </div>
               <div>
-                <h2 className="font-bold text-slate-900 dark:text-white text-sm">
+                <h2 className="font-black text-slate-900 dark:text-cream-50 text-sm tracking-tight">
                   Atividade de Leitura
                 </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Últimos 7 dias</p>
+                <p className="text-[10px] uppercase font-bold text-slate-500 dark:text-cream-200/30 tracking-widest mt-0.5">Últimos 7 dias</p>
               </div>
             </div>
             {stats.currentStreak > 0 && (
@@ -548,18 +551,18 @@ export default function Dashboard() {
                   )}
                   <div
                     title={`${day.pages} páginas`}
-                    className={`w-full rounded-md transition-all duration-300 ${day.pages > 0
+                    className={`w-full rounded-lg transition-all duration-300 relative group-hover:shadow-[0_0_15px_rgba(139,92,246,0.2)] ${day.pages > 0
                       ? isToday
-                        ? 'bg-gradient-to-t from-indigo-600 to-indigo-400'
-                        : 'bg-gradient-to-t from-indigo-500/60 to-indigo-400/60'
-                      : 'bg-slate-200 dark:bg-slate-700'
+                        ? 'bg-violet-500'
+                        : 'bg-violet-500/30'
+                      : 'bg-slate-100 dark:bg-dark-800'
                       }`}
                     style={{ height: `${barHeight}px` }}
                   />
                   <span
-                    className={`text-[10px] font-medium capitalize ${isToday
-                      ? 'text-indigo-500 dark:text-indigo-400'
-                      : 'text-slate-400 dark:text-slate-500'
+                    className={`text-[10px] font-bold uppercase tracking-tighter mt-1 ${isToday
+                      ? 'text-violet-400'
+                      : 'text-slate-400 dark:text-dark-700'
                       }`}
                   >
                     {dayLabel.replace('.', '')}
@@ -569,25 +572,27 @@ export default function Dashboard() {
             })}
           </div>
 
-          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center">
-            <span className="text-xs text-slate-500 dark:text-slate-400">Hoje</span>
-            <span className="text-sm font-bold text-slate-900 dark:text-white">
+          <div className="mt-8 pt-6 border-t border-slate-100 dark:border-dark-800 flex justify-between items-center relative z-10">
+            <span className="text-xs font-bold text-slate-500 dark:text-cream-200/30 uppercase tracking-widest">Resumo de Hoje</span>
+            <span className="text-sm font-black text-slate-900 dark:text-cream-100">
               {stats.pagesReadToday > 0
-                ? `${stats.pagesReadToday} páginas lidas`
-                : 'Nenhuma página ainda'}
+                ? `${stats.pagesReadToday} páginas`
+                : 'Pausa nas leituras'}
             </span>
           </div>
         </div>
 
         {/* Widget de Metas */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
-          <div className="flex items-center gap-2.5 mb-5">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 shadow-sm">
-              <Target className="w-4 h-4 text-white" />
+        <div className="bg-white dark:bg-dark-900 rounded-2xl p-6 border border-slate-200 dark:border-dark-800 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-cream-100/5 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
+
+          <div className="flex items-center gap-3 mb-8 relative z-10">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-dark-800 to-dark-950 shadow-lg border border-dark-700">
+              <Target className="w-4 h-4 text-cream-100" />
             </div>
             <div>
-              <h2 className="font-bold text-slate-900 dark:text-white text-sm">Metas Ativas</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Progresso atual</p>
+              <h2 className="font-black text-slate-900 dark:text-cream-50 text-sm tracking-tight">Metas Ativas</h2>
+              <p className="text-[10px] uppercase font-bold text-slate-500 dark:text-cream-200/30 tracking-widest mt-0.5">Progresso atual</p>
             </div>
           </div>
 
@@ -610,7 +615,8 @@ export default function Dashboard() {
                   target={dailyGoal.target_value}
                   unit="pág."
                   progress={dailyProgress}
-                  colorClass="from-violet-500 to-purple-400"
+                  colorClass="from-violet-400 to-purple-600"
+                  isCream={false}
                 />
               )}
               {monthlyGoal && (
@@ -627,18 +633,18 @@ export default function Dashboard() {
           )}
 
           {/* Totais rápidos */}
-          <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-700 grid grid-cols-2 gap-3">
-            <div className="text-center bg-slate-50 dark:bg-slate-700/50 rounded-lg py-3">
-              <p className="text-xl font-bold text-slate-900 dark:text-white">
+          <div className="mt-8 pt-6 border-t border-slate-100 dark:border-dark-800 grid grid-cols-2 gap-4 relative z-10">
+            <div className="text-center bg-slate-50 dark:bg-dark-800/40 rounded-2xl py-4 border border-transparent dark:border-dark-700 transition-colors hover:dark:border-dark-600">
+              <p className="text-2xl font-black text-slate-900 dark:text-cream-100">
                 {stats.totalPagesRead.toLocaleString('pt-BR')}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Páginas totais</p>
+              <p className="text-[10px] font-bold text-slate-500 dark:text-cream-200/30 uppercase tracking-widest mt-1">Páginas totais</p>
             </div>
-            <div className="text-center bg-slate-50 dark:bg-slate-700/50 rounded-lg py-3">
-              <p className="text-xl font-bold text-slate-900 dark:text-white">
+            <div className="text-center bg-slate-50 dark:bg-dark-800/40 rounded-2xl py-4 border border-transparent dark:border-dark-700 transition-colors hover:dark:border-dark-600">
+              <p className="text-2xl font-black text-slate-900 dark:text-cream-100">
                 {stats.booksCompleted}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Concluídos</p>
+              <p className="text-[10px] font-bold text-slate-500 dark:text-cream-200/30 uppercase tracking-widest mt-1">Concluídos</p>
             </div>
           </div>
         </div>
@@ -646,8 +652,8 @@ export default function Dashboard() {
 
       {/* ── Livros Recentes ── */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-black text-slate-900 dark:text-cream-50 tracking-tight">
             {currentBook ? 'Outros Livros' : 'Livros Recentes'}
           </h2>
         </div>
@@ -672,7 +678,7 @@ export default function Dashboard() {
               return (
                 <div
                   key={book.id}
-                  className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 hover:shadow-md hover:border-indigo-400/40 dark:hover:border-indigo-500/40 transition-all duration-200"
+                  className="group bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 rounded-2xl p-4 hover:shadow-xl hover:border-dark-700 dark:hover:border-dark-600 transition-all duration-300"
                 >
                   <div className="flex gap-3">
                     {book.cover_url ? (
@@ -688,10 +694,10 @@ export default function Dashboard() {
                     )}
 
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-900 dark:text-white text-sm leading-snug line-clamp-2">
+                      <h3 className="font-black text-slate-900 dark:text-cream-100 text-sm leading-snug line-clamp-2">
                         {book.title}
                       </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                      <p className="text-[10px] font-bold text-slate-500 dark:text-cream-200/30 uppercase tracking-wide mt-1 truncate">
                         {book.author}
                       </p>
 
@@ -724,9 +730,9 @@ export default function Dashboard() {
                             </span>
                             <span className="font-bold">{progress}%</span>
                           </div>
-                          <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div className="h-1.5 bg-slate-100 dark:bg-dark-800 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-gradient-to-r from-amber-500 to-orange-400 rounded-full transition-all"
+                              className="h-full bg-cream-100 rounded-full transition-all shadow-[0_0_8px_rgba(245,245,244,0.2)]"
                               style={{ width: `${progress}%` }}
                             />
                           </div>
@@ -767,6 +773,7 @@ function GoalBar({
   unit,
   progress,
   colorClass,
+  isCream = false,
 }: {
   label: string;
   current: number;
@@ -774,24 +781,25 @@ function GoalBar({
   unit: string;
   progress: number;
   colorClass: string;
+  isCream?: boolean;
 }) {
   return (
     <div>
-      <div className="flex justify-between items-center mb-1.5">
-        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{label}</span>
-        <span className="text-xs text-slate-500 dark:text-slate-400">
-          <span className="font-bold text-slate-900 dark:text-white">{current}</span>
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-[10px] uppercase font-bold text-slate-700 dark:text-cream-200/40 tracking-widest">{label}</span>
+        <span className="text-xs text-slate-500 dark:text-cream-200/30">
+          <span className="font-black text-slate-900 dark:text-cream-100">{current}</span>
           {' '}/ {target} {unit}
         </span>
       </div>
-      <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+      <div className="h-2 bg-slate-100 dark:bg-dark-800 rounded-full overflow-hidden">
         <div
-          className={`h-full bg-gradient-to-r ${colorClass} rounded-full transition-all duration-700`}
+          className={`h-full bg-gradient-to-r ${colorClass} rounded-full transition-all duration-1000 ${isCream ? 'shadow-[0_0_10px_rgba(245,245,244,0.1)]' : ''}`}
           style={{ width: `${progress}%` }}
         />
       </div>
-      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 text-right">
-        {progress >= 100 ? '🎉 Meta atingida!' : `${progress}% concluído`}
+      <p className="text-[10px] font-bold text-slate-400 dark:text-cream-200/20 mt-1.5 text-right uppercase tracking-tighter">
+        {progress >= 100 ? '🎉 Meta batida!' : `${progress}% concluído`}
       </p>
     </div>
   );

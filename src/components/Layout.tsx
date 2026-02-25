@@ -27,9 +27,9 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
+    <div className="min-h-screen bg-slate-50 dark:bg-dark-950 transition-colors duration-200">
       {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30">
+      <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-dark-900 border-b border-slate-200 dark:border-dark-800 sticky top-0 z-30">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition"
@@ -41,10 +41,10 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
           )}
         </button>
         <div className="flex items-center gap-2">
-          <div className="bg-slate-900 dark:bg-indigo-600 p-1.5 rounded-lg transition-colors">
-            <BookOpen className="w-5 h-5 text-white" />
+          <div className="bg-slate-900 dark:bg-cream-100 p-1.5 rounded-lg transition-colors">
+            <BookOpen className="w-5 h-5 text-white dark:text-dark-950" />
           </div>
-          <span className="font-bold text-lg text-slate-900 dark:text-white">BookMind</span>
+          <span className="font-bold text-lg text-slate-900 dark:text-cream-100">BookMind</span>
         </div>
       </div>
 
@@ -58,26 +58,26 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        className={`fixed md:fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-dark-900 border-r border-slate-200 dark:border-dark-800 flex flex-col transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
           }`}
       >
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700 hidden md:block">
+        <div className="p-6 border-b border-slate-200 dark:border-dark-800 hidden md:block">
           <div className="flex items-center gap-3">
-            <div className="bg-slate-900 dark:bg-indigo-600 p-2 rounded-lg transition-colors">
-              <BookOpen className="w-6 h-6 text-white" />
+            <div className="bg-slate-900 dark:bg-cream-100 p-2 rounded-lg transition-colors">
+              <BookOpen className="w-6 h-6 text-white dark:text-dark-950" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">BookMind</h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Gerenciador de Leituras</p>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-cream-100">BookMind</h1>
+              <p className="text-xs text-slate-500 dark:text-cream-300/60">Gerenciador de Leituras</p>
             </div>
           </div>
         </div>
 
-        <div className="md:hidden p-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-700">
-          <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Menu</span>
+        <div className="md:hidden p-4 flex items-center justify-between border-b border-slate-200 dark:border-dark-800">
+          <span className="text-sm font-medium text-slate-500 dark:text-cream-200/50">Menu</span>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-1 text-slate-500 dark:text-slate-400"
+            className="p-1 text-slate-500 dark:text-cream-200/50"
           >
             <X className="w-5 h-5" />
           </button>
@@ -92,8 +92,8 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                    ? 'bg-slate-900 dark:bg-indigo-600 text-white'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  ? 'bg-slate-900 dark:bg-cream-100 text-white dark:text-dark-950 shadow-lg shadow-black/20'
+                  : 'text-slate-600 dark:text-cream-200/70 hover:bg-slate-100 dark:hover:bg-dark-800'
                   }`}
               >
                 <Icon className="w-5 h-5" />
@@ -107,8 +107,8 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
           <button
             onClick={() => handleNavClick('settings')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeView === 'settings'
-                ? 'bg-slate-900 dark:bg-indigo-600 text-white'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+              ? 'bg-slate-900 dark:bg-cream-100 text-white dark:text-dark-950 shadow-lg shadow-black/20'
+              : 'text-slate-600 dark:text-cream-200/70 hover:bg-slate-100 dark:hover:bg-dark-800'
               }`}
           >
             <SettingsIcon className="w-5 h-5" />
@@ -116,7 +116,7 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
           </button>
           <button
             onClick={signOut}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
           >
             <LogOut className="w-5 h-5" />
             <span className="font-medium">Sair</span>
