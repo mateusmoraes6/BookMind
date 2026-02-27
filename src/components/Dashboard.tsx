@@ -59,8 +59,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   // Gradiente dinâmico extraído da capa do livro atual
   const [heroGradient, setHeroGradient] = useState<string>(
-    'linear-gradient(135deg, #3730a3, #4338ca, #6d28d9)'
+    'linear-gradient(135deg, #0a0a0a, #121212, #1a1a1a)'
   );
+  const [gradientLoaded, setGradientLoaded] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -71,7 +72,7 @@ export default function Dashboard() {
   // ── Extração de cor dominante da capa ──────────────────────────────────────
   useEffect(() => {
     if (!currentBook?.cover_url) {
-      setHeroGradient('linear-gradient(135deg, #3730a3, #4338ca, #6d28d9)');
+      setHeroGradient('linear-gradient(135deg, #0a0a0a, #121212, #1a1a1a)');
       return;
     }
     extractDominantColors(currentBook.cover_url)
@@ -81,12 +82,13 @@ export default function Dashboard() {
             `linear-gradient(135deg, ${colors[0]}, ${colors[1]}${colors[2] ? `, ${colors[2]}` : ''
             })`
           );
+          setGradientLoaded(true);
         } else {
-          setHeroGradient('linear-gradient(135deg, #3730a3, #4338ca, #6d28d9)');
+          setHeroGradient('linear-gradient(135deg, #0a0a0a, #121212, #1a1a1a)');
         }
       })
       .catch(() => {
-        setHeroGradient('linear-gradient(135deg, #3730a3, #4338ca, #6d28d9)');
+        setHeroGradient('linear-gradient(135deg, #0a0a0a, #121212, #1a1a1a)');
       });
   }, [currentBook?.cover_url]);
 
@@ -367,8 +369,8 @@ export default function Dashboard() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-10 w-10 border-2 border-indigo-500 border-t-transparent" />
-          <p className="text-sm text-slate-400">Carregando...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-slate-900 dark:border-cream-100 border-t-transparent dark:border-t-transparent" />
+          <p className="text-sm font-medium text-slate-500 dark:text-cream-200/50">Carregando...</p>
         </div>
       </div>
     );
@@ -409,7 +411,7 @@ export default function Dashboard() {
           className="relative overflow-hidden rounded-2xl p-6 shadow-2xl"
           style={{
             background: heroGradient,
-            transition: 'background 0.9s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: gradientLoaded ? 'background 0.9s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
           }}
         >
           {/* Decorações de fundo — camada de textura suave */}

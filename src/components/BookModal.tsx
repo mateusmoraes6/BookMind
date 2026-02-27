@@ -76,7 +76,7 @@ export default function BookModal({ book, onClose }: BookModalProps) {
       updated_at: new Date().toISOString(),
     };
 
-    if (book) {
+    if (book && book.id) {
       await (supabase.from('books') as any).update(bookData).eq('id', book.id);
     } else {
       await (supabase.from('books') as any).insert(bookData);
@@ -98,7 +98,7 @@ export default function BookModal({ book, onClose }: BookModalProps) {
       <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-dark-800 shadow-2xl relative">
         <div className="sticky top-0 bg-white/80 dark:bg-dark-900/80 backdrop-blur-md border-b border-slate-200 dark:border-dark-800 p-8 flex items-center justify-between z-20">
           <h2 className="text-2xl font-black text-slate-900 dark:text-cream-50 tracking-tight">
-            {book ? 'Editar Livro' : 'Adicionar Livro'}
+            {book && book.id ? 'Editar Livro' : 'Adicionar Livro'}
           </h2>
           <button
             onClick={onClose}
@@ -194,6 +194,7 @@ export default function BookModal({ book, onClose }: BookModalProps) {
                 className="w-full px-5 py-3.5 bg-slate-50 dark:bg-dark-950 border border-slate-200 dark:border-dark-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-cream-100 dark:text-cream-50 font-bold transition-all"
               >
                 <option value="not_started">Não Iniciado</option>
+                <option value="want_to_read">Quero Ler</option>
                 <option value="in_progress">Em Andamento</option>
                 <option value="completed">Concluído</option>
               </select>
@@ -253,7 +254,7 @@ export default function BookModal({ book, onClose }: BookModalProps) {
               disabled={loading}
               className="flex-1 px-4 py-4 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition-all font-black text-xs uppercase tracking-widest shadow-xl shadow-black/40 disabled:opacity-50 transform active:scale-[0.98]"
             >
-              {loading ? 'Salvando...' : book ? 'Salvar Alterações' : 'Adicionar Livro'}
+              {loading ? 'Salvando...' : (book && book.id) ? 'Salvar Alterações' : 'Adicionar Livro'}
             </button>
           </div>
         </form>
