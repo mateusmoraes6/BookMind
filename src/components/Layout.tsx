@@ -30,10 +30,10 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-dark-950 transition-colors duration-200">
       {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-dark-900 border-b border-slate-200 dark:border-dark-800 sticky top-0 z-30">
+      <div className="md:hidden flex items-center justify-between p-4 bg-black/60 backdrop-blur-md border-b border-white/10 sticky top-0 z-30">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition"
+          className="p-2 text-white hover:bg-white/10 rounded-lg transition"
         >
           {isMobileMenuOpen ? (
             <X className="w-6 h-6" />
@@ -42,10 +42,10 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
           )}
         </button>
         <div className="flex items-center gap-2">
-          <div className="bg-slate-900 dark:bg-cream-100 p-1.5 rounded-lg transition-colors">
-            <BookOpen className="w-5 h-5 text-white dark:text-dark-950" />
+          <div className="bg-white/10 p-1.5 rounded-lg transition-colors">
+            <BookOpen className="w-5 h-5 text-white" />
           </div>
-          <span className="font-bold text-lg text-slate-900 dark:text-cream-100">BookMind</span>
+          <span className="font-bold text-lg text-white">BookMind</span>
         </div>
       </div>
 
