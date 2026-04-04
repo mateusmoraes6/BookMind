@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   BookOpen, TrendingUp, Target, Award, BookMarked,
-  Clock, Flame, Star, Trophy, BarChart2
+  Clock, Flame, Star, Trophy, BarChart2, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -52,7 +52,8 @@ export default function Dashboard() {
     thisMonthBooks: 0,
     totalPagesRead: 0,
   });
-  const [currentBook, setCurrentBook] = useState<Book | null>(null);
+  const [currentBooks, setCurrentBooks] = useState<Book[]>([]);
+  const [activeBookIndex, setActiveBookIndex] = useState(0);
   const [recentBooks, setRecentBooks] = useState<Book[]>([]);
   const [last7Days, setLast7Days] = useState<{ date: string; pages: number }[]>([]);
   const [activeGoals, setActiveGoals] = useState<Goal[]>([]);
@@ -71,11 +72,13 @@ export default function Dashboard() {
 
   // ── Extração de cor dominante da capa ──────────────────────────────────────
   useEffect(() => {
-    if (!currentBook?.cover_url) {
+    const focused = currentBooks[activeBookIndex];
+    if (!focused?.cover_url) {
       setHeroGradient('linear-gradient(135deg, #0a0a0a, #121212, #1a1a1a)');
+      setGradientLoaded(false);
       return;
     }
-    extractDominantColors(currentBook.cover_url)
+    extractDominantColors(focused.cover_url)
       .then((colors) => {
         if (colors.length >= 2) {
           setHeroGradient(
@@ -90,7 +93,7 @@ export default function Dashboard() {
       .catch(() => {
         setHeroGradient('linear-gradient(135deg, #0a0a0a, #121212, #1a1a1a)');
       });
-  }, [currentBook?.cover_url]);
+  }, [activeBookIndex, currentBooks]);
 
   const loadDashboardData = async () => {
     if (!user) return;
@@ -122,12 +125,11 @@ export default function Dashboard() {
         (b) => b.completed_at && new Date(b.completed_at) >= startOfMonth
       ).length;
 
-      // O livro atual = mais recentemente atualizado entre os em andamento
       const sorted = [...inProgressBooks].sort(
         (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
       );
-      const hero = sorted[0] || null;
-      setCurrentBook(hero);
+      setCurrentBooks(sorted);
+      setActiveBookIndex(0);
 
       setStats((prev) => ({
         ...prev,
@@ -137,8 +139,8 @@ export default function Dashboard() {
         thisMonthBooks: thisMonth,
       }));
 
-      const othersStart = hero ? books.filter((b) => b.id !== hero.id) : books;
-      setRecentBooks(othersStart.slice(0, 6));
+      const heroIds = new Set(sorted.map((b) => b.id));
+      setRecentBooks(books.filter((b) => !heroIds.has(b.id)).slice(0, 6));
     }
 
     if (sessionsData.data) {
@@ -365,6 +367,17 @@ export default function Dashboard() {
     },
   ];
 
+  // ── Derived values & handlers (all before early return) ───────────────────
+  const currentBook = currentBooks[activeBookIndex] ?? null;
+
+  const goToPrev = useCallback(() => {
+    setActiveBookIndex((i) => (i - 1 + currentBooks.length) % currentBooks.length);
+  }, [currentBooks.length]);
+
+  const goToNext = useCallback(() => {
+    setActiveBookIndex((i) => (i + 1) % currentBooks.length);
+  }, [currentBooks.length]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -406,78 +419,127 @@ export default function Dashboard() {
       </div>
 
       {/* ── Hero: Lendo Agora ── */}
-      {currentBook && (
+      {currentBooks.length > 0 && (
         <div
-          className="relative overflow-hidden rounded-2xl p-6 shadow-2xl"
+          className="relative overflow-hidden rounded-2xl shadow-2xl"
           style={{
             background: heroGradient,
             transition: gradientLoaded ? 'background 0.9s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
           }}
         >
-          {/* Decorações de fundo — camada de textura suave */}
+          {/* Background decorations */}
           <div className="pointer-events-none absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/5" />
           <div className="pointer-events-none absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/5" />
-          {/* Overlay para garantir legibilidade do texto */}
           <div className="pointer-events-none absolute inset-0 bg-black/20" />
 
-          <div className="relative flex gap-5 items-start">
-            {/* Capa */}
-            {currentBook.cover_url ? (
-              <img
-                src={currentBook.cover_url}
-                alt={currentBook.title}
-                className="w-20 h-28 sm:w-24 sm:h-36 object-cover rounded-xl shadow-2xl flex-shrink-0 border-2 border-white/20"
-              />
-            ) : (
-              <div className="w-20 h-28 sm:w-24 sm:h-36 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0 border-2 border-white/20">
-                <BookOpen className="w-8 h-8 text-white/50" />
-              </div>
-            )}
-
-            {/* Infos */}
-            <div className="flex-1 min-w-0">
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 bg-white/10 px-2.5 py-1 rounded-full mb-3">
+          <div className="relative p-6">
+            {/* Header row: label + nav arrows (only when multiple books) */}
+            <div className="flex items-center justify-between mb-4">
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 bg-white/10 px-2.5 py-1 rounded-full">
                 📖 Lendo Agora
+                {currentBooks.length > 1 && (
+                  <span className="ml-1 bg-white/20 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                    {activeBookIndex + 1}/{currentBooks.length}
+                  </span>
+                )}
               </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight line-clamp-2">
-                {currentBook.title}
-              </h2>
-              <p className="text-white/60 text-sm mt-1 truncate">{currentBook.author}</p>
 
-              {currentBook.genres && (
-                <span
-                  className="inline-block text-xs px-2.5 py-0.5 rounded-full mt-2 font-medium border"
-                  style={{
-                    backgroundColor: `${currentBook.genres.color}25`,
-                    color: currentBook.genres.color,
-                    borderColor: `${currentBook.genres.color}50`,
-                  }}
-                >
-                  {currentBook.genres.name}
-                </span>
-              )}
-
-              {/* Barra de progresso */}
-              {currentBook.total_pages > 0 && (
-                <div className="mt-4">
-                  <div className="flex justify-between text-sm text-white/70 mb-2">
-                    <span className="font-medium">
-                      Página {currentBook.current_page} de {currentBook.total_pages}
-                    </span>
-                    <span className="font-black text-white">{currentProgress}%</span>
-                  </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden backdrop-blur-md">
-                    <div
-                      className="h-full bg-white rounded-full transition-all duration-700 shadow-[0_0_10px_rgba(255,255,255,0.3)]"
-                      style={{ width: `${currentProgress}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-white/50 mt-2 font-medium">
-                    {currentBook.total_pages - currentBook.current_page} páginas restantes
-                  </p>
+              {currentBooks.length > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={goToPrev}
+                    className="p-1.5 rounded-full bg-white/10 hover:bg-white/25 text-white transition-all"
+                    aria-label="Livro anterior"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={goToNext}
+                    className="p-1.5 rounded-full bg-white/10 hover:bg-white/25 text-white transition-all"
+                    aria-label="Próximo livro"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
                 </div>
               )}
             </div>
+
+            {/* Book info row */}
+            <div className="flex gap-5 items-start">
+              {/* Cover */}
+              {currentBook?.cover_url ? (
+                <img
+                  key={currentBook.id}
+                  src={currentBook.cover_url}
+                  alt={currentBook?.title}
+                  className="w-20 h-28 sm:w-24 sm:h-36 object-cover rounded-xl shadow-2xl flex-shrink-0 border-2 border-white/20 transition-all duration-500"
+                />
+              ) : (
+                <div className="w-20 h-28 sm:w-24 sm:h-36 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0 border-2 border-white/20">
+                  <BookOpen className="w-8 h-8 text-white/50" />
+                </div>
+              )}
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight line-clamp-2">
+                  {currentBook?.title}
+                </h2>
+                <p className="text-white/60 text-sm mt-1 truncate">{currentBook?.author}</p>
+
+                {currentBook?.genres && (
+                  <span
+                    className="inline-block text-xs px-2.5 py-0.5 rounded-full mt-2 font-medium border"
+                    style={{
+                      backgroundColor: `${currentBook.genres.color}25`,
+                      color: currentBook.genres.color,
+                      borderColor: `${currentBook.genres.color}50`,
+                    }}
+                  >
+                    {currentBook.genres.name}
+                  </span>
+                )}
+
+                {/* Progress bar */}
+                {currentBook && currentBook.total_pages > 0 && (
+                  <div className="mt-4">
+                    <div className="flex justify-between text-sm text-white/70 mb-2">
+                      <span className="font-medium">
+                        Página {currentBook.current_page} de {currentBook.total_pages}
+                      </span>
+                      <span className="font-black text-white">{currentProgress}%</span>
+                    </div>
+                    <div className="h-2 bg-white/10 rounded-full overflow-hidden backdrop-blur-md">
+                      <div
+                        className="h-full bg-white rounded-full transition-all duration-700 shadow-[0_0_10px_rgba(255,255,255,0.3)]"
+                        style={{ width: `${currentProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-white/50 mt-2 font-medium">
+                      {currentBook.total_pages - currentBook.current_page} páginas restantes
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Dot indicators — only when multiple books */}
+            {currentBooks.length > 1 && (
+              <div className="flex justify-center gap-2 mt-5">
+                {currentBooks.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveBookIndex(i)}
+                    className={`rounded-full transition-all duration-300 ${
+                      i === activeBookIndex
+                        ? 'w-5 h-2 bg-white'
+                        : 'w-2 h-2 bg-white/30 hover:bg-white/50'
+                    }`}
+                    aria-label={`Ir para livro ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

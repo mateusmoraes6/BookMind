@@ -187,8 +187,6 @@ export default function Library() {
     pending: shelfBooks.filter((b) => b.status === 'not_started').length,
   });
 
-  // Spine colors for the bookshelf preview
-  const SPINE_HEIGHTS = [72, 80, 68, 76, 84, 70, 78];
 
   if (loading) {
     return (
@@ -249,8 +247,8 @@ export default function Library() {
               const counts = getStatusCounts(shelf.books);
               const color = shelf.genre?.color || '#94a3b8';
               const name = shelf.genre?.name || 'Sem Categoria';
-              // Show up to 7 "spines" as visual preview
-              const preview = shelf.books.slice(0, 7);
+              // Show up to 5 "spines" as visual preview
+              const preview = shelf.books.slice(0, 5);
 
               return (
                 <button
@@ -291,26 +289,45 @@ export default function Library() {
                       </div>
                     </div>
 
-                    {/* Book spines preview — the "shelf" visual */}
-                    <div className="flex items-end gap-[3px] h-20 mb-5 px-1">
-                      {preview.map((book, i) => (
+                    {/* Book spine thumbnails — uniform height, cover image cropped */}
+                    <div className="flex items-stretch gap-[4px] h-24 mb-5 px-1">
+                      {preview.map((book) => (
                         <div
                           key={book.id}
-                          className="flex-1 rounded-t-sm transition-all duration-300 group-hover:opacity-90"
-                          style={{
-                            height: `${SPINE_HEIGHTS[i % SPINE_HEIGHTS.length]}px`,
-                            backgroundColor: color,
-                            opacity: 0.15 + (i / preview.length) * 0.7,
-                          }}
+                          className="relative flex-1 overflow-hidden rounded-t-md shadow-md transition-all duration-300 group-hover:shadow-lg"
                           title={book.title}
-                        />
+                          style={{ minWidth: 0 }}
+                        >
+                          {book.cover_url ? (
+                            <img
+                              src={book.cover_url}
+                              alt={book.title}
+                              className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                            />
+                          ) : (
+                            // Fallback: genre color with first letter of title
+                            <div
+                              className="w-full h-full flex items-end justify-center pb-1"
+                              style={{ backgroundColor: `${color}CC` }}
+                            >
+                              <span
+                                className="text-white font-black text-[10px] leading-none opacity-60"
+                                style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)' }}
+                              >
+                                {book.title.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+                          {/* Subtle inner shadow overlay for depth */}
+                          <div className="absolute inset-0 shadow-[inset_-2px_0_6px_rgba(0,0,0,0.25)]" />
+                        </div>
                       ))}
                       {/* Filler spines if few books */}
-                      {Array.from({ length: Math.max(0, 7 - preview.length) }).map((_, i) => (
+                      {Array.from({ length: Math.max(0, 5 - preview.length) }).map((_, i) => (
                         <div
                           key={`filler-${i}`}
-                          className="flex-1 rounded-t-sm border border-dashed border-slate-200 dark:border-dark-700"
-                          style={{ height: `${SPINE_HEIGHTS[(preview.length + i) % SPINE_HEIGHTS.length]}px` }}
+                          className="flex-1 rounded-t-md border border-dashed border-slate-200 dark:border-dark-700"
+                          style={{ minWidth: 0 }}
                         />
                       ))}
                     </div>
