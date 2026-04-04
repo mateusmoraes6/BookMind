@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, LayoutDashboard, Library as LibraryIcon, Tag, Target, List, Calendar as CalendarIcon, LogOut, Settings as SettingsIcon, Menu, X, Heart } from 'lucide-react';
+import { BookOpen, LayoutDashboard, Library as LibraryIcon, Tag, Target, List, Calendar as CalendarIcon, LogOut, Settings as SettingsIcon, Menu, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface LayoutProps {
@@ -18,7 +18,6 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
     { id: 'genres', label: 'Gêneros', icon: Tag },
     { id: 'goals', label: 'Metas', icon: Target },
     { id: 'lists', label: 'Listas', icon: List },
-    { id: 'wishlist', label: 'Lista de Desejos', icon: Heart },
     { id: 'calendar', label: 'Calendário', icon: CalendarIcon },
   ];
 

@@ -96,14 +96,14 @@ export default function Auth() {
             {isSignUp && (
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-cream-200/60 uppercase tracking-widest px-1">
-                  Nome Completo
+                  Nome
                 </label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="w-full px-4 py-4 bg-dark-800/50 border border-dark-700 rounded-2xl text-cream-100 placeholder-dark-700 focus:outline-none focus:border-cream-100/30 focus:ring-4 focus:ring-cream-100/5 transition-all"
-                  placeholder="Seu nome completo"
+                  placeholder="Seu nome"
                   required
                   disabled={loading}
                 />

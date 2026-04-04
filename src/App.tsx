@@ -11,7 +11,6 @@ import Goals from './components/Goals';
 import Lists from './components/Lists';
 import Calendar from './components/Calendar';
 import Settings from './components/Settings';
-import Wishlist from './components/Wishlist';
 import { InstallPWA } from './components/InstallPWA';
 
 
@@ -80,8 +79,6 @@ function AppContent() {
         return <Goals />;
       case 'lists':
         return <Lists />;
-      case 'wishlist':
-        return <Wishlist />;
       case 'calendar':
         return <Calendar />;
       case 'settings':
