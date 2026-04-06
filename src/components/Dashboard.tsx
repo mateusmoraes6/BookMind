@@ -6,6 +6,8 @@ import {
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { getLocalDateISO } from '../lib/dateUtils';
+import BookDetailModal from './BookDetailModal';
+import BookModal from './BookModal';
 
 interface DashboardStats {
   totalBooks: number;
@@ -58,6 +60,9 @@ export default function Dashboard() {
   const [recentBooks, setRecentBooks] = useState<Book[]>([]);
   const [last7Days, setLast7Days] = useState<{ date: string; pages: number }[]>([]);
   const [activeGoals, setActiveGoals] = useState<Goal[]>([]);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   // Gradiente dinâmico extraído da capa do livro atual
   const [heroGradient, setHeroGradient] = useState<string>(
@@ -428,7 +433,11 @@ export default function Dashboard() {
       {/* ── Hero: Lendo Agora ── */}
       {currentBooks.length > 0 && (
         <div
-          className="relative overflow-hidden rounded-2xl shadow-2xl"
+          className="relative overflow-hidden rounded-2xl shadow-2xl cursor-pointer group/hero"
+          onClick={() => {
+            setSelectedBook(currentBook);
+            setShowDetailModal(true);
+          }}
           style={{
             background: heroGradient,
             transition: gradientLoaded ? 'background 0.9s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
@@ -454,14 +463,20 @@ export default function Dashboard() {
               {currentBooks.length > 1 && (
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={goToPrev}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToPrev();
+                    }}
                     className="p-1.5 rounded-full bg-white/10 hover:bg-white/25 text-white transition-all"
                     aria-label="Livro anterior"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={goToNext}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToNext();
+                    }}
                     className="p-1.5 rounded-full bg-white/10 hover:bg-white/25 text-white transition-all"
                     aria-label="Próximo livro"
                   >
@@ -536,7 +551,10 @@ export default function Dashboard() {
                 {currentBooks.map((_, i) => (
                   <button
                     key={i}
-                    onClick={() => setActiveBookIndex(i)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveBookIndex(i);
+                    }}
                     className={`rounded-full transition-all duration-300 ${
                       i === activeBookIndex
                         ? 'w-5 h-2 bg-white'
@@ -832,6 +850,33 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* ── Modais ── */}
+      {showDetailModal && selectedBook && (
+        <BookDetailModal
+          book={selectedBook as any}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedBook(null);
+            loadDashboardData();
+          }}
+          onEdit={() => {
+            setShowDetailModal(false);
+            setShowEditModal(true);
+          }}
+        />
+      )}
+
+      {showEditModal && selectedBook && (
+        <BookModal
+          book={selectedBook as any}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedBook(null);
+            loadDashboardData();
+          }}
+        />
+      )}
     </div>
   );
 }
