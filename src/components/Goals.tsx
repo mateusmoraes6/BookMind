@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { getLocalDateISO, getLocalISOString } from '../lib/dateUtils';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 type GoalType =
@@ -149,19 +150,19 @@ export default function Goals() {
       let current = 0;
 
       if (goal.goal_type === 'daily_pages') {
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateISO();
         const { data } = await (supabase.from('reading_sessions') as any)
           .select('pages_read').eq('user_id', user.id).eq('session_date', today);
         current = data?.reduce((s: number, r: any) => s + (r.pages_read || 0), 0) || 0;
 
       } else if (goal.goal_type === 'monthly_books') {
-        const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+        const monthStart = getLocalISOString(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
         const { data } = await (supabase.from('books') as any)
           .select('id').eq('user_id', user.id).eq('status', 'completed').gte('completed_at', monthStart);
         current = data?.length || 0;
 
       } else if (goal.goal_type === 'yearly_books') {
-        const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString();
+        const yearStart = getLocalISOString(new Date(new Date().getFullYear(), 0, 1));
         const { data } = await (supabase.from('books') as any)
           .select('id').eq('user_id', user.id).eq('status', 'completed').gte('completed_at', yearStart);
         current = data?.length || 0;
@@ -205,8 +206,8 @@ export default function Goals() {
         .update({
           goal_type: formData.goal_type,
           target_value: parseInt(formData.target_value),
-          period_start: periodStart.toISOString().split('T')[0],
-          period_end: periodEnd.toISOString().split('T')[0],
+          period_start: getLocalDateISO(periodStart),
+          period_end: getLocalDateISO(periodEnd),
         })
         .eq('id', editingGoalId);
 
@@ -220,8 +221,8 @@ export default function Goals() {
         user_id: user.id,
         goal_type: formData.goal_type,
         target_value: parseInt(formData.target_value),
-        period_start: periodStart.toISOString().split('T')[0],
-        period_end: periodEnd.toISOString().split('T')[0],
+        period_start: getLocalDateISO(periodStart),
+        period_end: getLocalDateISO(periodEnd),
         is_active: true,
       });
 

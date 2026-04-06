@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Calendar as CalendarIcon, BookOpen, TrendingUp } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { getLocalDateISO } from '../lib/dateUtils';
 
 export default function Calendar() {
   const { user } = useAuth();
@@ -21,8 +22,8 @@ export default function Calendar() {
 
     setLoading(true);
 
-    const startOfYear = new Date(currentMonth.getFullYear(), 0, 1).toISOString().split('T')[0];
-    const endOfYear = new Date(currentMonth.getFullYear(), 11, 31).toISOString().split('T')[0];
+    const startOfYear = getLocalDateISO(new Date(currentMonth.getFullYear(), 0, 1));
+    const endOfYear = getLocalDateISO(new Date(currentMonth.getFullYear(), 11, 31));
 
     const { data } = await (supabase
       .from('reading_sessions') as any)
@@ -82,7 +83,7 @@ export default function Calendar() {
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = getLocalDateISO(date);
     const dayData = heatmapData[dateStr];
     const intensity = dayData ? getIntensity(dayData.pages) : 'bg-slate-100 dark:bg-slate-700/50';
 

@@ -9,6 +9,8 @@ interface BookDetailModalProps {
   onEdit: () => void;
 }
 
+import { getLocalDateISO, getLocalISOString } from '../lib/dateUtils';
+
 export default function BookDetailModal({ book, onClose, onEdit }: BookDetailModalProps) {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<any[]>([]);
@@ -39,6 +41,7 @@ export default function BookDetailModal({ book, onClose, onEdit }: BookDetailMod
     if (!user) return;
 
     const newPage = book.current_page + parseInt(sessionData.pages_read);
+    const today = getLocalDateISO();
 
     await Promise.all([
       (supabase.from('reading_sessions') as any).insert({
@@ -49,14 +52,14 @@ export default function BookDetailModal({ book, onClose, onEdit }: BookDetailMod
         end_page: newPage,
         duration_minutes: parseInt(sessionData.duration_minutes),
         notes: sessionData.notes || null,
-        session_date: new Date().toISOString().split('T')[0],
+        session_date: today,
       }),
       (supabase
         .from('books') as any)
         .update({
           current_page: newPage,
           status: newPage >= book.total_pages ? 'completed' : 'in_progress',
-          completed_at: newPage >= book.total_pages ? new Date().toISOString() : null,
+          completed_at: newPage >= book.total_pages ? getLocalISOString() : null,
         })
         .eq('id', book.id),
     ]);

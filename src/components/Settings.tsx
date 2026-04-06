@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Save, Moon, Sun, Bell, Layout, Download, Smartphone } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { getLocalISOString } from '../lib/dateUtils';
 
 interface UserPreferences {
     daily_reading_reminder: boolean;
@@ -113,7 +114,7 @@ export default function Settings() {
                     reminder_time: preferences.reminder_time,
                     theme: preferences.theme,
                     books_per_page: preferences.books_per_page,
-                    updated_at: new Date().toISOString(),
+                    updated_at: getLocalISOString(),
                 });
 
             if (error) throw error;

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { getLocalISOString } from '../lib/dateUtils';
 
 interface BookModalProps {
   book: any | null;
@@ -73,7 +74,7 @@ export default function BookModal({ book, onClose }: BookModalProps) {
       description: formData.description || null,
       status: formData.status,
       current_page: formData.current_page ? parseInt(formData.current_page) : 0,
-      updated_at: new Date().toISOString(),
+      updated_at: getLocalISOString(),
     };
 
     if (book && book.id) {

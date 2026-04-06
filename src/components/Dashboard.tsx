@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { getLocalDateISO } from '../lib/dateUtils';
 
 interface DashboardStats {
   totalBooks: number;
@@ -145,7 +146,7 @@ export default function Dashboard() {
 
     if (sessionsData.data) {
       const sessions: ReadingSession[] = sessionsData.data;
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateISO();
 
       const todayPages = sessions
         .filter((s) => s.session_date === today)
@@ -159,7 +160,7 @@ export default function Dashboard() {
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = getLocalDateISO(d);
         const pages = sessions
           .filter((s) => s.session_date === dateStr)
           .reduce((sum, s) => sum + (s.pages_read || 0), 0);
@@ -281,14 +282,20 @@ export default function Dashboard() {
     const dates = [...new Set(sessions.map((s) => s.session_date))].sort().reverse();
     let streak = 0;
     const today = new Date();
+    
+    // Check if the first date is either today or yesterday to continue/start a streak
+    const todayStr = getLocalDateISO(today);
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const yesterdayStr = getLocalDateISO(yesterday);
+    
+    if (dates[0] !== todayStr && dates[0] !== yesterdayStr) return 0;
+
     for (let i = 0; i < dates.length; i++) {
-      const sessionDate = new Date(dates[i]);
-      const expectedDate = new Date(today);
-      expectedDate.setDate(today.getDate() - i);
-      if (
-        sessionDate.toISOString().split('T')[0] ===
-        expectedDate.toISOString().split('T')[0]
-      ) {
+      const expectedDate = new Date(dates[0] === todayStr ? today : yesterday);
+      expectedDate.setDate(expectedDate.getDate() - i);
+      
+      if (dates[i] === getLocalDateISO(expectedDate)) {
         streak++;
       } else {
         break;
@@ -602,7 +609,7 @@ export default function Dashboard() {
                 day.pages > 0
                   ? Math.max((day.pages / maxBarPages) * 80, 16)
                   : 6;
-              const isToday = day.date === new Date().toISOString().split('T')[0];
+              const isToday = day.date === getLocalDateISO();
               const dayLabel = new Date(day.date + 'T12:00:00').toLocaleDateString('pt-BR', {
                 weekday: 'short',
               });
