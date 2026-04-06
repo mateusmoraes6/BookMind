@@ -95,9 +95,9 @@ const PRESETS: { label: string; type: GoalType; value: number; emoji: string }[]
 // ─── Informações de Ritmo ─────────────────────────────────────────────────────
 const PACE_CONFIG: Record<Pace, { label: string; color: string; bg: string; icon: any }> = {
   completed: { label: 'Meta conquistada!', color: 'text-green-500', bg: 'bg-green-500/10', icon: CheckCircle2 },
-  ahead:     { label: 'Você está adiantado!', color: 'text-cyan-400', bg: 'bg-cyan-400/10', icon: Zap },
-  on_track:  { label: 'No ritmo certo', color: 'text-amber-400', bg: 'bg-amber-400/10', icon: TrendingUp },
-  behind:    { label: 'Acelere o ritmo!', color: 'text-orange-400', bg: 'bg-orange-400/10', icon: Clock },
+  ahead: { label: 'Você está adiantado!', color: 'text-cyan-400', bg: 'bg-cyan-400/10', icon: Zap },
+  on_track: { label: 'No ritmo certo', color: 'text-amber-400', bg: 'bg-amber-400/10', icon: TrendingUp },
+  behind: { label: 'Acelere o ritmo!', color: 'text-orange-400', bg: 'bg-orange-400/10', icon: Clock },
 };
 
 // ─── SVG: Anel de progresso ───────────────────────────────────────────────────
@@ -224,11 +224,10 @@ function MonthlyGoalCard({
 
   return (
     <div
-      className={`relative bg-white dark:bg-dark-900 rounded-3xl border transition-all duration-300 overflow-hidden group ${
-        done
+      className={`relative bg-white dark:bg-dark-900 rounded-3xl border transition-all duration-300 overflow-hidden group ${done
           ? 'border-green-400/50 dark:border-green-500/20 shadow-xl shadow-green-500/5'
           : 'border-slate-200 dark:border-dark-800 hover:border-slate-300 dark:hover:border-dark-700 hover:shadow-2xl'
-      }`}
+        }`}
     >
       {/* Barra de cor no topo */}
       <div
@@ -304,9 +303,8 @@ function MonthlyGoalCard({
             {/* Barra fina */}
             <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-700 bg-gradient-to-r ${
-                  done ? 'from-green-400 to-emerald-500' : cfg.gradient
-                }`}
+                className={`h-full rounded-full transition-all duration-700 bg-gradient-to-r ${done ? 'from-green-400 to-emerald-500' : cfg.gradient
+                  }`}
                 style={{ width: `${p.percentage}%` }}
               />
             </div>
@@ -477,7 +475,7 @@ export default function Goals() {
         const current = data?.reduce((s: number, r: any) => s + (r.pages_read || 0), 0) || 0;
         pd = { current, target, percentage: Math.min((current / target) * 100, 100) };
 
-      // ── META MENSAL: Livros FINALIZADOS no mês corrente ───────────────────
+        // ── META MENSAL: Livros FINALIZADOS no mês corrente ───────────────────
       } else if (goal.goal_type === 'monthly_books') {
         const year = now.getFullYear();
         const month = now.getMonth();
@@ -538,7 +536,7 @@ export default function Goals() {
           pace,
         };
 
-      // ── META ANUAL: Livros FINALIZADOS no ano corrente ────────────────────
+        // ── META ANUAL: Livros FINALIZADOS no ano corrente ────────────────────
       } else if (goal.goal_type === 'yearly_books') {
         const year = now.getFullYear();
         const yearStart = `${year}-01-01`;
@@ -803,11 +801,10 @@ export default function Goals() {
                     return (
                       <div
                         key={goal.id}
-                        className={`relative bg-white dark:bg-dark-900 rounded-3xl border transition-all duration-300 overflow-hidden group ${
-                          done
+                        className={`relative bg-white dark:bg-dark-900 rounded-3xl border transition-all duration-300 overflow-hidden group ${done
                             ? 'border-green-400/50 dark:border-green-500/20 shadow-xl shadow-green-500/5'
                             : 'border-slate-200 dark:border-dark-800 hover:border-slate-300 dark:hover:border-dark-700 hover:shadow-2xl'
-                        }`}
+                          }`}
                       >
                         <div className={`h-1 w-full bg-gradient-to-r ${cfg.gradient}`} style={{ opacity: done ? 1 : 0.6 }} />
                         <div className="p-5">
@@ -918,11 +915,10 @@ export default function Goals() {
                       key={p.label}
                       type="button"
                       onClick={() => applyPreset(p)}
-                      className={`text-[11px] px-5 py-2.5 rounded-2xl font-black uppercase tracking-wider transition-all border ${
-                        formData.goal_type === p.type && formData.target_value === String(p.value)
+                      className={`text-[11px] px-5 py-2.5 rounded-2xl font-black uppercase tracking-wider transition-all border ${formData.goal_type === p.type && formData.target_value === String(p.value)
                           ? 'bg-cream-100 text-dark-950 border-cream-100 shadow-xl shadow-black/40 scale-105'
                           : 'bg-slate-50 dark:bg-dark-900 text-slate-500 dark:text-cream-200/30 hover:bg-dark-800 dark:hover:bg-dark-800 hover:text-cream-100 dark:hover:text-cream-100 border-slate-100 dark:border-dark-800'
-                      }`}
+                        }`}
                     >
                       {p.emoji} {p.label}
                     </button>
@@ -942,11 +938,10 @@ export default function Goals() {
                         key={type}
                         type="button"
                         onClick={() => setFormData((f) => ({ ...f, goal_type: type }))}
-                        className={`flex flex-col gap-3 p-4 rounded-3xl border-2 text-left transition-all group relative overflow-hidden ${
-                          formData.goal_type === type
+                        className={`flex flex-col gap-3 p-4 rounded-3xl border-2 text-left transition-all group relative overflow-hidden ${formData.goal_type === type
                             ? 'border-cream-100 bg-cream-100/5'
                             : 'border-slate-100 dark:border-dark-800 hover:border-dark-700 bg-slate-50/50 dark:bg-black/20'
-                        }`}
+                          }`}
                       >
                         <div className="p-2 rounded-xl w-fit transition-transform group-hover:scale-110" style={{ backgroundColor: `${cfg.color}15` }}>
                           <cfg.icon className="w-5 h-5" style={{ color: cfg.color }} />

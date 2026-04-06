@@ -287,19 +287,19 @@ export default function Dashboard() {
     const dates = [...new Set(sessions.map((s) => s.session_date))].sort().reverse();
     let streak = 0;
     const today = new Date();
-    
+
     // Check if the first date is either today or yesterday to continue/start a streak
     const todayStr = getLocalDateISO(today);
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
     const yesterdayStr = getLocalDateISO(yesterday);
-    
+
     if (dates[0] !== todayStr && dates[0] !== yesterdayStr) return 0;
 
     for (let i = 0; i < dates.length; i++) {
       const expectedDate = new Date(dates[0] === todayStr ? today : yesterday);
       expectedDate.setDate(expectedDate.getDate() - i);
-      
+
       if (dates[i] === getLocalDateISO(expectedDate)) {
         streak++;
       } else {
@@ -555,11 +555,10 @@ export default function Dashboard() {
                       e.stopPropagation();
                       setActiveBookIndex(i);
                     }}
-                    className={`rounded-full transition-all duration-300 ${
-                      i === activeBookIndex
+                    className={`rounded-full transition-all duration-300 ${i === activeBookIndex
                         ? 'w-5 h-2 bg-white'
                         : 'w-2 h-2 bg-white/30 hover:bg-white/50'
-                    }`}
+                      }`}
                     aria-label={`Ir para livro ${i + 1}`}
                   />
                 ))}
