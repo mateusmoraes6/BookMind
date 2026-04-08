@@ -11,17 +11,6 @@ export interface ReadingSession {
   created_at: string;
 }
 
-export interface Goal {
-  id: string;
-  user_id: string;
-  goal_type: string;
-  target_value: number;
-  period_start: string;
-  period_end: string;
-  is_active: boolean;
-  created_at: string;
-}
-
 export const sessionsService = {
   /**
    * Fetches all reading sessions for a specific user.
@@ -39,23 +28,5 @@ export const sessionsService = {
     }
     
     return data as ReadingSession[];
-  },
-
-  /**
-   * Fetches all active goals for a specific user.
-   */
-  async getActiveGoalsByUserId(userId: string): Promise<Goal[]> {
-    const { data, error } = await supabase
-      .from('reading_goals')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('is_active', true);
-
-    if (error) {
-      console.error('Error fetching goals:', error);
-      throw error;
-    }
-
-    return data as Goal[];
   }
 };

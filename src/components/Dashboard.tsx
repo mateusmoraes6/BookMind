@@ -5,7 +5,8 @@ import {
   PauseCircle
 } from 'lucide-react';
 import { booksService } from '../services/booksService';
-import { sessionsService, ReadingSession, Goal } from '../services/sessionsService';
+import { sessionsService, ReadingSession } from '../services/sessionsService';
+import { goalsService, Goal } from '../services/goalsService';
 import { useAuth } from '../contexts/AuthContext';
 import { getLocalDateISO } from '../lib/dateUtils';
 import BookDetailModal from './BookDetailModal';
@@ -93,7 +94,7 @@ export default function Dashboard() {
       const [books, sessions, goals] = await Promise.all([
         booksService.getRecentBooksByUserId(user.id),
         sessionsService.getSessionsByUserId(user.id),
-        sessionsService.getActiveGoalsByUserId(user.id)
+        goalsService.getActiveGoals(user.id)
       ]);
 
       if (books) {

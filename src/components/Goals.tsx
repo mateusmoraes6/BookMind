@@ -3,7 +3,7 @@ import {
   Target, Plus, TrendingUp, Calendar, Trophy, X, CheckCircle2, Pencil,
   BookOpen, BookMarked, Flame, Zap, Clock, ChevronDown, ChevronUp,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { goalsService, Goal } from '../services/goalsService';
 import { useAuth } from '../contexts/AuthContext';
 import { getLocalDateISO, getMonthRange, getDaysInMonth } from '../lib/dateUtils';
 
@@ -11,14 +11,7 @@ import { getLocalDateISO, getMonthRange, getDaysInMonth } from '../lib/dateUtils
 type GoalType = 'daily_pages' | 'monthly_books' | 'yearly_books';
 type Pace = 'completed' | 'ahead' | 'on_track' | 'behind';
 
-interface Goal {
-  id: string;
-  goal_type: GoalType;
-  target_value: number;
-  period_start: string;
-  period_end: string;
-  is_active: boolean;
-}
+// Goal interface moved to goalsService.ts
 
 interface BookSummary {
   id: string;
@@ -454,18 +447,15 @@ export default function Goals() {
   // ── Carregar metas ──────────────────────────────────────────────────────────
   const loadGoals = async () => {
     if (!user) return;
-    setLoading(true);
-    const { data } = await (supabase.from('reading_goals') as any)
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
-
-    if (data) {
+    try {
+      const data = await goalsService.getActiveGoals(user.id);
       setGoals(data);
       await calculateProgress(data);
+    } catch (error) {
+      console.error('Error loading goals:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   // ── Calcular progresso de cada meta ────────────────────────────────────────
@@ -481,11 +471,7 @@ export default function Goals() {
       // ── META DIÁRIA: Páginas lidas hoje ────────────────────────────────────
       if (goal.goal_type === 'daily_pages') {
         const today = getLocalDateISO();
-        const { data } = await (supabase.from('reading_sessions') as any)
-          .select('pages_read')
-          .eq('user_id', user.id)
-          .eq('session_date', today);
-        const current = data?.reduce((s: number, r: any) => s + (r.pages_read || 0), 0) || 0;
+        const current = await goalsService.getPagesReadByDate(user.id, today);
         pd = { current, target, percentage: Math.min((current / target) * 100, 100) };
 
         // ── META MENSAL: Livros FINALIZADOS no mês corrente ───────────────────
@@ -498,20 +484,10 @@ export default function Goals() {
         const daysRemaining = totalDays - dayOfMonth;
 
         // 1. Livros FINALIZADOS neste mês → contam para a meta
-        const { data: completedData } = await (supabase.from('books') as any)
-          .select('id, title, author, cover_url, total_pages, current_page, started_at, completed_at, status')
-          .eq('user_id', user.id)
-          .eq('status', 'completed')
-          .gte('completed_at', monthStart)
-          .lte('completed_at', monthEnd);
+        const completedData = await goalsService.getCompletedBooksInRange(user.id, monthStart, monthEnd);
 
         // 2. Livros INICIADOS neste mês → métrica complementar
-        const { data: startedData } = await (supabase.from('books') as any)
-          .select('id, title, author, cover_url, total_pages, current_page, started_at, completed_at, status')
-          .eq('user_id', user.id)
-          .not('started_at', 'is', null)
-          .gte('started_at', monthStart)
-          .lte('started_at', monthEnd);
+        const startedData = await goalsService.getStartedBooksInRange(user.id, monthStart, monthEnd);
 
         const completedList: BookSummary[] = (completedData || []).map((b: any) => ({
           ...b,
@@ -560,19 +536,8 @@ export default function Goals() {
         const totalDays = (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)) ? 366 : 365;
         const daysRemaining = totalDays - dayOfYear;
 
-        const { data: completedData } = await (supabase.from('books') as any)
-          .select('id, title, author, cover_url, total_pages, current_page, started_at, completed_at, status')
-          .eq('user_id', user.id)
-          .eq('status', 'completed')
-          .gte('completed_at', yearStart)
-          .lte('completed_at', yearEnd);
-
-        const { data: startedData } = await (supabase.from('books') as any)
-          .select('id')
-          .eq('user_id', user.id)
-          .not('started_at', 'is', null)
-          .gte('started_at', yearStart)
-          .lte('started_at', yearEnd);
+        const completedData = await goalsService.getCompletedBooksInRange(user.id, yearStart, yearEnd);
+        const startedData = await goalsService.getStartedBooksInRange(user.id, yearStart, yearEnd);
 
         const completedList: BookSummary[] = (completedData || []).map((b: any) => ({
           ...b,
@@ -637,32 +602,33 @@ export default function Goals() {
       period_end: getLocalDateISO(periodEnd),
     };
 
-    if (editingGoalId) {
-      const { error } = await (supabase.from('reading_goals') as any)
-        .update(payload)
-        .eq('id', editingGoalId);
-      if (error) { console.error(error); return; }
-    } else {
-      const { error } = await (supabase.from('reading_goals') as any).insert({
-        user_id: user.id,
-        ...payload,
-        is_active: true,
-      });
-      if (error) { console.error(error); return; }
+    try {
+      if (editingGoalId) {
+        await goalsService.updateGoal(editingGoalId, payload);
+      } else {
+        await goalsService.createGoal({
+          user_id: user.id,
+          ...payload,
+          is_active: true,
+        });
+      }
+      setShowModal(false);
+      setEditingGoalId(null);
+      setFormData({ goal_type: 'daily_pages', target_value: '' });
+      loadGoals();
+    } catch (error) {
+      console.error('Error saving goal:', error);
     }
-
-    setShowModal(false);
-    setEditingGoalId(null);
-    setFormData({ goal_type: 'daily_pages', target_value: '' });
-    loadGoals();
   };
 
   // ── Desativar meta ──────────────────────────────────────────────────────────
   const handleDeactivate = async (goalId: string) => {
-    await (supabase.from('reading_goals') as any)
-      .update({ is_active: false })
-      .eq('id', goalId);
-    loadGoals();
+    try {
+      await goalsService.deactivateGoal(goalId);
+      loadGoals();
+    } catch (error) {
+      console.error('Error deactivating goal:', error);
+    }
   };
 
   // ── Editar meta ─────────────────────────────────────────────────────────────
