@@ -1,23 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Plus, Search, BookOpen, Star, Edit2, Trash2, Eye, ArrowLeft, BookMarked, CheckCircle2, Clock, Layers } from 'lucide-react';
+import { Plus, Search, BookOpen, Star, Edit2, Trash2, Eye, ArrowLeft, Layers } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import BookModal from './BookModal';
 import BookDetailModal from './BookDetailModal';
-
-interface Book {
-  id: string;
-  title: string;
-  author: string;
-  publication_year: number | null;
-  total_pages: number;
-  cover_url: string | null;
-  status: 'not_started' | 'in_progress' | 'completed';
-  personal_rating: number | null;
-  current_page: number;
-  genre_id: string | null;
-  genres?: { id: string; name: string; color: string } | null;
-}
+import { Book, BOOK_STATUS_METADATA, BOOK_STATUS_LIST, BookStatus } from '../types/book';
 
 interface Genre {
   id: string;
@@ -65,7 +52,21 @@ export default function Library() {
       (supabase.from('genres') as any).select('*').eq('user_id', user.id).order('name'),
     ]);
 
-    if (booksRes.data) setBooks(booksRes.data);
+    if (booksRes.data) {
+      const allBooks = booksRes.data as unknown as Book[];
+      setBooks(allBooks);
+      
+      // Update selected shelf if we are in category-books view
+      if (viewMode === 'category-books' && selectedShelf) {
+        const updatedShelfBooks = allBooks.filter(b => 
+          (selectedShelf.genre === null ? !b.genre_id : b.genre_id === selectedShelf.genre.id)
+        );
+        setSelectedShelf({
+          ...selectedShelf,
+          books: updatedShelfBooks
+        });
+      }
+    }
     if (genresRes.data) setGenres(genresRes.data);
 
     setLoading(false);
@@ -159,33 +160,17 @@ export default function Library() {
     setSelectedBook(null);
   };
 
-  const getStatusMeta = (status: string) => {
-    const map = {
-      not_started: {
-        label: 'Não Iniciado',
-        color: 'bg-slate-100 dark:bg-dark-800 text-slate-500 dark:text-cream-200/40',
-        icon: Clock,
-      },
-      in_progress: {
-        label: 'Lendo',
-        color: 'bg-amber-100/80 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400',
-        icon: BookMarked,
-      },
-      completed: {
-        label: 'Concluído',
-        color: 'bg-emerald-100/80 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
-        icon: CheckCircle2,
-      },
-    };
-    return map[status as keyof typeof map] || map.not_started;
-  };
+  const getStatusCounts = (shelfBooks: Book[]) => {
+    const counts = {
+      total: shelfBooks.length,
+    } as Record<string, number>;
 
-  const getStatusCounts = (shelfBooks: Book[]) => ({
-    total: shelfBooks.length,
-    reading: shelfBooks.filter((b) => b.status === 'in_progress').length,
-    done: shelfBooks.filter((b) => b.status === 'completed').length,
-    pending: shelfBooks.filter((b) => b.status === 'not_started').length,
-  });
+    BOOK_STATUS_LIST.forEach(status => {
+      counts[status.id] = shelfBooks.filter(b => b.status === status.id).length;
+    });
+
+    return counts;
+  };
 
 
   if (loading) {
@@ -213,6 +198,7 @@ export default function Library() {
           <button
             onClick={() => setShowModal(true)}
             className="flex items-center justify-center gap-3 px-6 py-3.5 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition-all shadow-xl shadow-black/20 font-black text-xs uppercase tracking-widest w-full sm:w-auto transform active:scale-95"
+            aria-label="Adicionar Livro"
           >
             <Plus className="w-5 h-5 mb-0.5" />
             Adicionar Livro
@@ -233,6 +219,7 @@ export default function Library() {
             <button
               onClick={() => setShowModal(true)}
               className="inline-flex items-center gap-3 px-10 py-5 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition shadow-2xl shadow-black/40 font-black text-xs uppercase tracking-[0.2em] transform active:scale-95"
+              aria-label="Adicionar Primeiro Livro"
             >
               <Plus className="w-5 h-5" />
               Adicionar Livro
@@ -336,31 +323,19 @@ export default function Library() {
                     <div className="h-2 rounded-full bg-slate-100 dark:bg-dark-800 mb-4" />
 
                     {/* Status mini stats */}
-                    <div className="flex items-center gap-3">
-                      {counts.reading > 0 && (
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                          <span className="text-[10px] font-bold text-slate-500 dark:text-cream-200/40 uppercase tracking-wider">
-                            {counts.reading} lendo
-                          </span>
-                        </div>
-                      )}
-                      {counts.done > 0 && (
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                          <span className="text-[10px] font-bold text-slate-500 dark:text-cream-200/40 uppercase tracking-wider">
-                            {counts.done} concluído{counts.done > 1 ? 's' : ''}
-                          </span>
-                        </div>
-                      )}
-                      {counts.pending > 0 && (
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-dark-600" />
-                          <span className="text-[10px] font-bold text-slate-500 dark:text-cream-200/40 uppercase tracking-wider">
-                            {counts.pending} na fila
-                          </span>
-                        </div>
-                      )}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {BOOK_STATUS_LIST.map(status => {
+                        const count = counts[status.id];
+                        if (count === 0) return null;
+                        return (
+                          <div key={status.id} className="flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.color }} />
+                            <span className="text-[10px] font-bold text-slate-500 dark:text-cream-200/40 uppercase tracking-wider">
+                              {count} {status.label.toLowerCase()}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </button>
@@ -390,6 +365,7 @@ export default function Library() {
           <button
             onClick={handleBack}
             className="p-3 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 rounded-2xl text-slate-600 dark:text-cream-200/60 hover:bg-slate-50 dark:hover:bg-dark-800 transition-all shadow-sm hover:shadow-md transform active:scale-95"
+            aria-label="Voltar para estantes"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -417,6 +393,7 @@ export default function Library() {
         <button
           onClick={() => setShowModal(true)}
           className="flex items-center justify-center gap-3 px-6 py-3.5 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition-all shadow-xl shadow-black/20 font-black text-xs uppercase tracking-widest w-full sm:w-auto transform active:scale-95"
+          aria-label="Adicionar Livro"
         >
           <Plus className="w-5 h-5 mb-0.5" />
           Adicionar Livro
@@ -436,39 +413,24 @@ export default function Library() {
           >
             Todos · {shelfCounts.total}
           </button>
-          <button
-            onClick={() => setFilterStatus('in_progress')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              filterStatus === 'in_progress'
-                ? 'bg-amber-500 text-white shadow-lg'
-                : 'bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 text-slate-500 dark:text-cream-200/50 hover:border-amber-400/50'
-            }`}
-          >
-            <BookMarked className="w-3.5 h-3.5" />
-            Lendo · {shelfCounts.reading}
-          </button>
-          <button
-            onClick={() => setFilterStatus('completed')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              filterStatus === 'completed'
-                ? 'bg-emerald-500 text-white shadow-lg'
-                : 'bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 text-slate-500 dark:text-cream-200/50 hover:border-emerald-400/50'
-            }`}
-          >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Concluídos · {shelfCounts.done}
-          </button>
-          <button
-            onClick={() => setFilterStatus('not_started')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              filterStatus === 'not_started'
-                ? 'bg-slate-500 text-white shadow-lg'
-                : 'bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 text-slate-500 dark:text-cream-200/50 hover:border-slate-400/50'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" />
-            Na Fila · {shelfCounts.pending}
-          </button>
+          {BOOK_STATUS_LIST.map(status => (
+            <button
+              key={status.id}
+              onClick={() => setFilterStatus(status.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                filterStatus === status.id
+                  ? 'text-white shadow-lg'
+                  : 'bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 text-slate-500 dark:text-cream-200/50'
+              }`}
+              style={{
+                backgroundColor: filterStatus === status.id ? status.color : undefined,
+                borderColor: filterStatus !== status.id ? `${status.color}30` : undefined,
+              }}
+            >
+              <status.icon className="w-3.5 h-3.5" />
+              {status.label} · {shelfCounts[status.id]}
+            </button>
+          ))}
         </div>
       )}
 
@@ -482,6 +444,7 @@ export default function Library() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-6 py-3.5 bg-slate-50 dark:bg-dark-950 border border-slate-200 dark:border-dark-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-medium transition-all"
+            aria-label="Buscar livros"
           />
         </div>
       </div>
@@ -503,10 +466,10 @@ export default function Library() {
       {visibleBooks.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {visibleBooks.map((book) => {
-            const statusMeta = getStatusMeta(book.status);
+            const statusMeta = BOOK_STATUS_METADATA[book.status as BookStatus] || BOOK_STATUS_METADATA.not_started;
             const StatusIcon = statusMeta.icon;
             const progress =
-              book.status === 'in_progress' && book.total_pages > 0
+              (book.status === 'in_progress' || book.status === 'paused') && book.total_pages > 0
                 ? Math.round((book.current_page / book.total_pages) * 100)
                 : null;
 
@@ -540,7 +503,7 @@ export default function Library() {
                     </div>
                   )}
 
-                  {/* Progress ring (in_progress only) */}
+                  {/* Progress ring (in_progress/paused) */}
                   {progress !== null && (
                     <div className="absolute top-4 left-4 w-11 h-11 z-10">
                       <svg className="w-11 h-11 -rotate-90" viewBox="0 0 44 44">
@@ -570,6 +533,7 @@ export default function Library() {
                     <button
                       onClick={() => handleView(book)}
                       className="p-2.5 bg-dark-950/90 backdrop-blur-md text-cream-100 rounded-xl shadow-2xl hover:bg-cream-100 hover:text-dark-950 transition-all border border-dark-800"
+                      aria-label="Visualizar Detalhes"
                       title="Visualizar"
                     >
                       <Eye className="w-3.5 h-3.5" />
@@ -577,6 +541,7 @@ export default function Library() {
                     <button
                       onClick={() => handleEdit(book)}
                       className="p-2.5 bg-dark-950/90 backdrop-blur-md text-cream-100 rounded-xl shadow-2xl hover:bg-cream-100 hover:text-dark-950 transition-all border border-dark-800"
+                      aria-label="Editar Livro"
                       title="Editar"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
@@ -584,6 +549,7 @@ export default function Library() {
                     <button
                       onClick={() => handleDelete(book.id)}
                       className="p-2.5 bg-dark-950/90 backdrop-blur-md text-red-400 rounded-xl shadow-2xl hover:bg-red-500 hover:text-white transition-all border border-dark-800"
+                      aria-label="Excluir Livro"
                       title="Excluir"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -605,7 +571,7 @@ export default function Library() {
 
                   <div className="flex items-center justify-between mt-3">
                     <span
-                      className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-xl ${statusMeta.color}`}
+                      className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-xl ${statusMeta.bgClass} ${statusMeta.textClass} border ${statusMeta.borderClass}`}
                     >
                       <StatusIcon className="w-3 h-3" />
                       {statusMeta.label}
@@ -621,7 +587,7 @@ export default function Library() {
                   </div>
 
                   {/* Progress bar */}
-                  {book.status === 'in_progress' && book.total_pages > 0 && (
+                  {(book.status === 'in_progress' || book.status === 'paused') && book.total_pages > 0 && (
                     <div className="mt-4">
                       <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-cream-200/20 mb-2">
                         <span>Pág. {book.current_page} / {book.total_pages}</span>
@@ -654,6 +620,7 @@ export default function Library() {
         <BookDetailModal
           book={selectedBook}
           onClose={handleDetailModalClose}
+          onBookUpdated={loadData}
           onEdit={() => {
             setShowDetailModal(false);
             setShowModal(true);

@@ -1,36 +1,26 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   BookOpen, TrendingUp, Target, Award, BookMarked,
-  Clock, Flame, Star, Trophy, BarChart2, ChevronLeft, ChevronRight
+  Clock, Flame, Star, Trophy, BarChart2, ChevronLeft, ChevronRight,
+  PauseCircle
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { getLocalDateISO } from '../lib/dateUtils';
 import BookDetailModal from './BookDetailModal';
 import BookModal from './BookModal';
+import { Book, BOOK_STATUS_METADATA, BookStatus } from '../types/book';
 
 interface DashboardStats {
   totalBooks: number;
   booksInProgress: number;
   booksCompleted: number;
+  booksPaused: number;
+  booksWantToRead: number;
   pagesReadToday: number;
   currentStreak: number;
   thisMonthBooks: number;
   totalPagesRead: number;
-}
-
-interface Book {
-  id: string;
-  title: string;
-  author: string;
-  cover_url?: string;
-  status: string;
-  current_page: number;
-  total_pages: number;
-  completed_at?: string;
-  updated_at: string;
-  genres?: { name: string; color: string };
-  rating?: number;
 }
 
 interface ReadingSession {
@@ -50,6 +40,8 @@ export default function Dashboard() {
     totalBooks: 0,
     booksInProgress: 0,
     booksCompleted: 0,
+    booksPaused: 0,
+    booksWantToRead: 0,
     pagesReadToday: 0,
     currentStreak: 0,
     thisMonthBooks: 0,
@@ -120,10 +112,12 @@ export default function Dashboard() {
     ]);
 
     if (booksData.data) {
-      const books: Book[] = booksData.data;
+      const books: Book[] = booksData.data as unknown as Book[];
       const total = books.length;
       const inProgressBooks = books.filter((b) => b.status === 'in_progress');
-      const completed = books.filter((b) => b.status === 'completed').length;
+      const completedCount = books.filter((b) => b.status === 'completed').length;
+      const pausedCount = books.filter((b) => b.status === 'paused').length;
+      const wantToReadCount = books.filter((b) => b.status === 'want_to_read').length;
 
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -141,7 +135,9 @@ export default function Dashboard() {
         ...prev,
         totalBooks: total,
         booksInProgress: inProgressBooks.length,
-        booksCompleted: completed,
+        booksCompleted: completedCount,
+        booksPaused: pausedCount,
+        booksWantToRead: wantToReadCount,
         thisMonthBooks: thisMonth,
       }));
 
@@ -310,28 +306,14 @@ export default function Dashboard() {
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'in_progress': return 'Lendo';
-      case 'completed': return 'Concluído';
-      case 'want_to_read': return 'Quero Ler';
-      case 'paused': return 'Pausado';
-      default: return status;
-    }
+    return BOOK_STATUS_METADATA[status as BookStatus]?.label || status;
   };
 
   const getStatusStyle = (status: string) => {
-    switch (status) {
-      case 'in_progress':
-        return 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
-      case 'completed':
-        return 'bg-green-500/20 text-green-400 border border-green-500/30';
-      case 'want_to_read':
-        return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
-      case 'paused':
-        return 'bg-slate-500/20 text-slate-400 border border-slate-500/30';
-      default:
-        return 'bg-slate-500/20 text-slate-400';
-    }
+    const meta = BOOK_STATUS_METADATA[status as BookStatus];
+    if (!meta) return 'bg-slate-500/20 text-slate-400';
+    // Adapt target background classes for dashboard minor labels
+    return `${meta.bgClass.replace('/80', '/20')} ${meta.textClass} border ${meta.borderClass}`;
   };
 
   const statCards = [
@@ -343,7 +325,7 @@ export default function Dashboard() {
       glow: 'bg-blue-500/10 border-blue-500/20',
     },
     {
-      label: 'Em Andamento',
+      label: 'Lendo agora',
       value: stats.booksInProgress,
       icon: BookMarked,
       gradient: 'from-amber-500 to-orange-400',
@@ -371,11 +353,11 @@ export default function Dashboard() {
       glow: 'bg-red-500/10 border-red-500/20',
     },
     {
-      label: 'Este Mês',
-      value: stats.thisMonthBooks,
-      icon: Clock,
-      gradient: 'from-cyan-600 to-sky-400',
-      glow: 'bg-cyan-500/10 border-cyan-500/20',
+      label: 'Pausados',
+      value: stats.booksPaused,
+      icon: PauseCircle,
+      gradient: 'from-slate-600 to-slate-400',
+      glow: 'bg-slate-500/10 border-slate-500/20',
     },
   ];
 
@@ -697,25 +679,36 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-4">
               {dailyGoal && (
-                <GoalBar
-                  label="Meta Diária"
-                  current={stats.pagesReadToday}
-                  target={dailyGoal.target_value}
-                  unit="pág."
-                  progress={dailyProgress}
-                  colorClass="from-violet-400 to-purple-600"
-                  isCream={false}
-                />
+                <div className="space-y-2">
+                  <div className="flex justify-between items-end">
+                    <span className="text-xs font-black text-slate-900 dark:text-cream-50 uppercase tracking-wider">Meta Diária</span>
+                    <span className="text-[10px] font-bold text-slate-500">
+                      {stats.pagesReadToday} / {dailyGoal.target_value} pág.
+                    </span>
+                  </div>
+                  <div className="h-2 bg-slate-100 dark:bg-dark-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-violet-400 to-purple-600 transition-all duration-1000"
+                      style={{ width: `${dailyProgress}%` }}
+                    />
+                  </div>
+                </div>
               )}
               {monthlyGoal && (
-                <GoalBar
-                  label="Meta Mensal"
-                  current={stats.thisMonthBooks}
-                  target={monthlyGoal.target_value}
-                  unit="livros"
-                  progress={monthlyProgress}
-                  colorClass="from-green-500 to-emerald-400"
-                />
+                <div className="space-y-2">
+                  <div className="flex justify-between items-end">
+                    <span className="text-xs font-black text-slate-900 dark:text-cream-50 uppercase tracking-wider">Meta Mensal</span>
+                    <span className="text-[10px] font-bold text-slate-500">
+                      {stats.thisMonthBooks} / {monthlyGoal.target_value} livros
+                    </span>
+                  </div>
+                  <div className="h-2 bg-slate-100 dark:bg-dark-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-1000"
+                      style={{ width: `${monthlyProgress}%` }}
+                    />
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -764,9 +757,13 @@ export default function Dashboard() {
                   ? Math.round((book.current_page / book.total_pages) * 100)
                   : 0;
               return (
-                <div
+                <button
                   key={book.id}
-                  className="group bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 rounded-2xl p-4 hover:shadow-xl hover:border-dark-700 dark:hover:border-dark-600 transition-all duration-300"
+                  onClick={() => {
+                    setSelectedBook(book);
+                    setShowDetailModal(true);
+                  }}
+                  className="group block w-full text-left bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 rounded-2xl p-4 hover:shadow-xl hover:border-dark-700 dark:hover:border-dark-600 transition-all duration-300"
                 >
                   <div className="flex gap-3">
                     {book.cover_url ? (
@@ -799,66 +796,44 @@ export default function Dashboard() {
                           <span
                             className="text-[10px] px-2 py-0.5 rounded-full font-semibold border"
                             style={{
-                              backgroundColor: `${book.genres.color}20`,
+                              backgroundColor: `${book.genres.color}15`,
                               color: book.genres.color,
-                              borderColor: `${book.genres.color}40`,
+                              borderColor: `${book.genres.color}30`,
                             }}
                           >
                             {book.genres.name}
                           </span>
                         )}
                       </div>
-
-                      {/* Progresso de leitura */}
-                      {book.status === 'in_progress' && book.total_pages > 0 && (
-                        <div className="mt-2.5">
-                          <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-                            <span>
-                              {book.current_page}/{book.total_pages} p.
-                            </span>
-                            <span className="font-bold">{progress}%</span>
-                          </div>
-                          <div className="h-1.5 bg-slate-100 dark:bg-dark-800 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-cream-100 rounded-full transition-all shadow-[0_0_8px_rgba(245,245,244,0.2)]"
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Avaliação (livros concluídos) */}
-                      {book.status === 'completed' && book.rating && (
-                        <div className="flex items-center gap-0.5 mt-2">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-3 h-3 ${i < (book.rating ?? 0)
-                                ? 'text-amber-400 fill-amber-400'
-                                : 'text-slate-300 dark:text-slate-600'
-                                }`}
-                            />
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </div>
-                </div>
+                  
+                  {book.status === 'in_progress' && (
+                    <div className="mt-3">
+                      <div className="h-1 bg-slate-100 dark:bg-dark-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-slate-900 dark:bg-cream-100 transition-all duration-1000"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </button>
               );
             })}
           </div>
         )}
       </div>
 
-      {/* ── Modais ── */}
       {showDetailModal && selectedBook && (
         <BookDetailModal
-          book={selectedBook as any}
+          book={selectedBook}
           onClose={() => {
             setShowDetailModal(false);
             setSelectedBook(null);
             loadDashboardData();
           }}
+          onBookUpdated={loadDashboardData}
           onEdit={() => {
             setShowDetailModal(false);
             setShowEditModal(true);
@@ -868,7 +843,7 @@ export default function Dashboard() {
 
       {showEditModal && selectedBook && (
         <BookModal
-          book={selectedBook as any}
+          book={selectedBook}
           onClose={() => {
             setShowEditModal(false);
             setSelectedBook(null);
@@ -876,46 +851,6 @@ export default function Dashboard() {
           }}
         />
       )}
-    </div>
-  );
-}
-
-/* ── Componente auxiliar: barra de meta ── */
-function GoalBar({
-  label,
-  current,
-  target,
-  unit,
-  progress,
-  colorClass,
-  isCream = false,
-}: {
-  label: string;
-  current: number;
-  target: number;
-  unit: string;
-  progress: number;
-  colorClass: string;
-  isCream?: boolean;
-}) {
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-[10px] uppercase font-bold text-slate-700 dark:text-cream-200/40 tracking-widest">{label}</span>
-        <span className="text-xs text-slate-500 dark:text-cream-200/30">
-          <span className="font-black text-slate-900 dark:text-cream-100">{current}</span>
-          {' '}/ {target} {unit}
-        </span>
-      </div>
-      <div className="h-2 bg-slate-100 dark:bg-dark-800 rounded-full overflow-hidden">
-        <div
-          className={`h-full bg-gradient-to-r ${colorClass} rounded-full transition-all duration-1000 ${isCream ? 'shadow-[0_0_10px_rgba(245,245,244,0.1)]' : ''}`}
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-      <p className="text-[10px] font-bold text-slate-400 dark:text-cream-200/20 mt-1.5 text-right uppercase tracking-tighter">
-        {progress >= 100 ? '🎉 Meta batida!' : `${progress}% concluído`}
-      </p>
     </div>
   );
 }

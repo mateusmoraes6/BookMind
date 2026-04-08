@@ -99,7 +99,7 @@ export interface Database {
           cover_url: string | null
           isbn: string | null
           description: string | null
-          status: 'not_started' | 'in_progress' | 'completed'
+          status: 'not_started' | 'in_progress' | 'completed' | 'want_to_read' | 'paused'
           personal_rating: number | null
           current_page: number
           started_at: string | null
@@ -118,7 +118,7 @@ export interface Database {
           cover_url?: string | null
           isbn?: string | null
           description?: string | null
-          status?: 'not_started' | 'in_progress' | 'completed'
+          status?: 'not_started' | 'in_progress' | 'completed' | 'want_to_read' | 'paused'
           personal_rating?: number | null
           current_page?: number
           started_at?: string | null
@@ -137,7 +137,7 @@ export interface Database {
           cover_url?: string | null
           isbn?: string | null
           description?: string | null
-          status?: 'not_started' | 'in_progress' | 'completed'
+          status?: 'not_started' | 'in_progress' | 'completed' | 'want_to_read' | 'paused'
           personal_rating?: number | null
           current_page?: number
           started_at?: string | null
