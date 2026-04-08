@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { getLocalDateISO } from '../lib/dateUtils';
 import { useGoalsData, Pace, BookSummary, ProgressData } from '../hooks/useGoalsData';
+import { EmptyState, InlineError, Skeleton } from './feedback';
 
 import { goalsService, Goal } from '../services/goalsService';
 import { useAuth } from '../contexts/AuthContext';
@@ -387,7 +388,7 @@ function MonthlyGoalCard({
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function Goals() {
   const { user } = useAuth();
-  const { goals, progress, loading, refresh } = useGoalsData();
+  const { goals, progress, loading, error, refresh } = useGoalsData();
   const [showModal, setShowModal] = useState(false);
   const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
   const [formData, setFormData] = useState<{ goal_type: GoalType; target_value: string }>({
@@ -483,11 +484,36 @@ export default function Goals() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-10 w-10 border-2 border-cream-100 border-t-transparent" />
-          <p className="text-sm text-slate-400 dark:text-cream-200/30">Carregando metas...</p>
+      <div className="space-y-8">
+        <div>
+          <Skeleton variant="text" className="h-8 w-48 mb-2" />
+          <Skeleton variant="text" className="h-4 w-64" />
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-48 bg-slate-50 dark:bg-dark-900 rounded-[2rem] border border-slate-100 dark:border-dark-800 p-6 space-y-4">
+              <Skeleton className="h-4 w-1/2" />
+              <div className="flex gap-4 items-center">
+                <Skeleton className="w-16 h-16 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-8 w-3/4" />
+                  <Skeleton className="h-2 w-full" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh]">
+        <InlineError 
+          message={typeof error === 'string' ? error : error.message} 
+          onRetry={() => refresh()} 
+        />
       </div>
     );
   }
@@ -538,36 +564,15 @@ export default function Goals() {
 
       {/* ── Estado vazio ── */}
       {goals.length === 0 ? (
-        <div className="bg-white dark:bg-dark-900 rounded-3xl border border-slate-200 dark:border-dark-800 p-12 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-cream-100/5 rounded-full -mr-16 -mt-16 blur-3xl" />
-          <div className="relative z-10 w-16 h-16 bg-cream-100/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-cream-100/10">
-            <Target className="w-8 h-8 text-cream-100" />
-          </div>
-          <h3 className="text-xl font-black text-slate-900 dark:text-cream-100 mb-2">
-            Nenhuma meta ativa
-          </h3>
-          <p className="text-slate-500 dark:text-cream-200/40 mb-8 max-w-sm mx-auto text-sm font-medium">
-            Crie metas diárias, mensais e anuais para manter o ritmo e celebrar cada conquista!
-          </p>
-          <div className="flex flex-wrap justify-center gap-2 mb-6">
-            {PRESETS.slice(0, 4).map((p) => (
-              <button
-                key={p.label}
-                onClick={() => { applyPreset(p); setShowModal(true); }}
-                className="text-xs px-4 py-2 bg-slate-100 dark:bg-dark-800 text-slate-700 dark:text-cream-100 rounded-xl hover:bg-cream-100 dark:hover:bg-cream-100 hover:text-dark-950 dark:hover:text-dark-950 transition-all font-bold uppercase tracking-wider border border-transparent dark:border-dark-700"
-              >
-                {p.emoji} {p.label}
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-3 px-8 py-4 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition shadow-xl shadow-black/20 font-black text-xs uppercase tracking-widest"
-          >
-            <Plus className="w-4 h-4" />
-            Criar Primeira Meta
-          </button>
-        </div>
+        <EmptyState
+          title="Nenhuma meta ativa"
+          description="Crie metas diárias, mensais e anuais para manter o ritmo e celebrar cada conquista!"
+          icon={Target}
+          action={{
+            label: "Criar Primeira Meta",
+            onClick: () => setShowModal(true)
+          }}
+        />
       ) : (
         /* ── Metas agrupadas por período ── */
         <div className="space-y-8">

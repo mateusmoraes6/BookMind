@@ -9,6 +9,7 @@ import { useDashboardData } from '../hooks/useDashboardData';
 import BookDetailModal from './BookDetailModal';
 import BookModal from './BookModal';
 import { Book, BOOK_STATUS_METADATA, BookStatus } from '../types/book';
+import { Skeleton, InlineError, EmptyState } from './feedback';
 
 // Interfaces moved to sessionsService.ts
 
@@ -17,7 +18,7 @@ import { Book, BOOK_STATUS_METADATA, BookStatus } from '../types/book';
 export default function Dashboard() {
   const { 
     stats, currentBooks, recentBooks, allBooks, 
-    last7Days, activeGoals, loading, refresh 
+    last7Days, activeGoals, loading, error, refresh 
   } = useDashboardData();
 
   const [activeBookIndex, setActiveBookIndex] = useState(0);
@@ -232,11 +233,63 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-10 w-10 border-2 border-slate-900 dark:border-cream-100 border-t-transparent dark:border-t-transparent" />
-          <p className="text-sm font-medium text-slate-500 dark:text-cream-200/50">Carregando...</p>
+      <div className="space-y-8">
+        <div>
+          <Skeleton variant="text" className="h-8 w-48 mb-2" />
+          <Skeleton variant="text" className="h-4 w-64" />
         </div>
+
+        {/* Hero Skeleton */}
+        <div className="h-64 sm:h-80 w-full bg-slate-100 dark:bg-dark-900 rounded-[2.5rem] p-8 flex gap-8">
+          <Skeleton className="w-40 h-full rounded-2xl hidden sm:block" />
+          <div className="flex-1 space-y-4">
+            <Skeleton variant="text" className="h-10 w-3/4" />
+            <Skeleton variant="text" className="h-6 w-1/2" />
+            <div className="pt-8">
+               <Skeleton variant="text" className="h-4 w-full" />
+               <Skeleton className="h-3 w-full rounded-full" />
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Skeleton */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="h-32 bg-slate-50 dark:bg-dark-900 rounded-3xl border border-slate-100 dark:border-dark-800 p-4 space-y-3">
+              <Skeleton className="w-10 h-10 rounded-xl" />
+              <Skeleton variant="text" className="w-2/3" />
+            </div>
+          ))}
+        </div>
+
+        {/* Activity Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="h-80 bg-slate-50 dark:bg-dark-900 rounded-[2.5rem] p-8">
+            <Skeleton variant="text" className="h-8 w-1/3 mb-8" />
+            <div className="flex items-end gap-2 h-32">
+              {[1, 2, 3, 4, 5, 6, 7].map(i => (
+                <Skeleton key={i} className="flex-1 rounded-lg" style={{ height: `${20 + Math.random() * 60}%` }} />
+              ))}
+            </div>
+          </div>
+          <div className="h-80 bg-slate-50 dark:bg-dark-900 rounded-[2.5rem] p-8 space-y-6">
+            <Skeleton variant="text" className="h-8 w-1/3" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh]">
+        <InlineError 
+          message={typeof error === 'string' ? error : error.message} 
+          onRetry={() => refresh()} 
+        />
       </div>
     );
   }
@@ -598,15 +651,15 @@ export default function Dashboard() {
         </div>
 
         {recentBooks.length === 0 ? (
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
-            <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-600 dark:text-slate-400 font-medium">
-              Nenhum livro por aqui ainda
-            </p>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-              Adicione livros à biblioteca para vê-los aqui
-            </p>
-          </div>
+          <EmptyState
+            title="Nenhum livro recente"
+            description="Seus livros aparecerão aqui assim que você os adicionar à sua biblioteca."
+            icon={BookOpen}
+            action={{
+              label: "Ir para Biblioteca",
+              onClick: () => window.location.hash = '#/library' // Assuming hash routing or similar, but maybe just a button is enough
+            }}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {recentBooks.map((book) => {

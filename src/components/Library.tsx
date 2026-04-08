@@ -6,6 +6,7 @@ import BookDetailModal from './BookDetailModal';
 import { Book, BOOK_STATUS_METADATA, BOOK_STATUS_LIST, BookStatus } from '../types/book';
 import ConfirmDialog from './ConfirmDialog';
 import { useLibraryData, Genre } from '../hooks/useLibraryData';
+import { EmptyState, InlineError, CardSkeleton } from './feedback';
 
 interface CategoryShelf {
   genre: Genre | null; // null = "Sem categoria"
@@ -15,7 +16,7 @@ interface CategoryShelf {
 type ViewMode = 'shelves' | 'category-books';
 
 export default function Library() {
-  const { books, genres, loading, refresh } = useLibraryData();
+  const { books, genres, loading, error, refresh } = useLibraryData();
   const [viewMode, setViewMode] = useState<ViewMode>('shelves');
   const [selectedShelf, setSelectedShelf] = useState<CategoryShelf | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -157,8 +158,29 @@ export default function Library() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-cream-100"></div>
+      <div className="space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="w-1/3">
+            <div className="h-8 w-48 bg-slate-200 dark:bg-dark-800 animate-pulse rounded-lg mb-2" />
+            <div className="h-4 w-32 bg-slate-100 dark:bg-dark-900 animate-pulse rounded-lg" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh]">
+        <InlineError 
+          message={typeof error === 'string' ? error : error.message} 
+          onRetry={() => refresh()} 
+        />
       </div>
     );
   }
@@ -189,24 +211,15 @@ export default function Library() {
 
         {/* Empty state */}
         {shelves.length === 0 && (
-          <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-dark-800 p-16 text-center relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-cream-100/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-            <BookOpen className="w-20 h-20 text-slate-200 dark:text-dark-800 mx-auto mb-6 relative z-10" />
-            <h3 className="text-2xl font-black text-slate-900 dark:text-cream-100 mb-2 relative z-10">
-              Sua biblioteca está vazia
-            </h3>
-            <p className="text-slate-500 dark:text-cream-200/40 mb-10 max-w-sm mx-auto text-sm font-medium relative z-10">
-              Adicione seu primeiro livro para começar a organizar sua coleção por categorias
-            </p>
-            <button
-              onClick={() => setShowModal(true)}
-              className="inline-flex items-center gap-3 px-10 py-5 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition shadow-2xl shadow-black/40 font-black text-xs uppercase tracking-[0.2em] transform active:scale-95"
-              aria-label="Adicionar Primeiro Livro"
-            >
-              <Plus className="w-5 h-5" />
-              Adicionar Livro
-            </button>
-          </div>
+          <EmptyState
+            title="Sua biblioteca está vazia"
+            description="Adicione seu primeiro livro para começar a organizar sua coleção por categorias"
+            icon={BookOpen}
+            action={{
+              label: "Adicionar Livro",
+              onClick: () => setShowModal(true)
+            }}
+          />
         )}
 
         {/* Shelves grid */}
@@ -444,15 +457,11 @@ export default function Library() {
 
       {/* Empty filtered state */}
       {visibleBooks.length === 0 && (
-        <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] border border-slate-200 dark:border-dark-800 p-12 text-center">
-          <BookOpen className="w-16 h-16 text-slate-200 dark:text-dark-800 mx-auto mb-4" />
-          <h3 className="text-lg font-black text-slate-900 dark:text-cream-100 mb-1">
-            Nenhum livro encontrado
-          </h3>
-          <p className="text-slate-500 dark:text-cream-200/40 text-sm font-medium">
-            Tente ajustar os filtros ou a busca
-          </p>
-        </div>
+        <EmptyState
+          title="Nenhum livro encontrado"
+          description="Tente ajustar os filtros ou a busca para encontrar o que procura."
+          icon={Search}
+        />
       )}
 
       {/* Books grid */}
