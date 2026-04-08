@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { BookOpen, LayoutDashboard, Library as LibraryIcon, Tag, Target, List, Calendar as CalendarIcon, LogOut, Settings as SettingsIcon, Menu, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activeView: string;
-  onViewChange: (view: string) => void;
 }
 
-export default function Layout({ children, activeView, onViewChange }: LayoutProps) {
+export default function Layout({ children }: LayoutProps) {
   const { signOut } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Close mobile menu on ESC key
@@ -22,18 +23,20 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
   }, []);
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'library', label: 'Biblioteca', icon: LibraryIcon },
-    { id: 'genres', label: 'Gêneros', icon: Tag },
-    { id: 'goals', label: 'Metas', icon: Target },
-    { id: 'lists', label: 'Listas', icon: List },
-    { id: 'calendar', label: 'Calendário', icon: CalendarIcon },
+    { id: 'dashboard', path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'library', path: '/library', label: 'Biblioteca', icon: LibraryIcon },
+    { id: 'genres', path: '/genres', label: 'Gêneros', icon: Tag },
+    { id: 'goals', path: '/goals', label: 'Metas', icon: Target },
+    { id: 'lists', path: '/lists', label: 'Listas', icon: List },
+    { id: 'calendar', path: '/calendar', label: 'Calendário', icon: CalendarIcon },
   ];
 
-  const handleNavClick = (viewId: string) => {
-    onViewChange(viewId);
+  const handleNavClick = (path: string) => {
+    navigate(path);
     setIsMobileMenuOpen(false);
   };
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-dark-950 transition-colors duration-200">
@@ -100,18 +103,18 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeView === item.id;
+            const active = isActive(item.path);
             return (
               <button
                 key={item.id}
-                onClick={() => handleNavClick(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${isActive
+                onClick={() => handleNavClick(item.path)}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${active
                   ? 'bg-slate-900 dark:bg-cream-100 text-white dark:text-dark-950 shadow-xl shadow-black/20 font-bold'
                   : 'text-slate-600 dark:text-cream-200/60 hover:bg-slate-100 dark:hover:bg-dark-800 font-medium'
                   }`}
-                aria-current={isActive ? 'page' : undefined}
+                aria-current={active ? 'page' : undefined}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-white dark:text-dark-950' : 'text-slate-400 dark:text-cream-200/30'}`} />
+                <Icon className={`w-5 h-5 ${active ? 'text-white dark:text-dark-950' : 'text-slate-400 dark:text-cream-200/30'}`} />
                 <span className="tracking-tight">{item.label}</span>
               </button>
             );
@@ -120,14 +123,14 @@ export default function Layout({ children, activeView, onViewChange }: LayoutPro
 
         <div className="p-4 border-t border-slate-200 dark:border-dark-800 space-y-2">
           <button
-            onClick={() => handleNavClick('settings')}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${activeView === 'settings'
+            onClick={() => handleNavClick('/settings')}
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${isActive('/settings')
               ? 'bg-slate-900 dark:bg-cream-100 text-white dark:text-dark-950 shadow-xl shadow-black/20 font-bold'
               : 'text-slate-600 dark:text-cream-200/60 hover:bg-slate-100 dark:hover:bg-dark-800 font-medium'
               }`}
-            aria-current={activeView === 'settings' ? 'page' : undefined}
+            aria-current={isActive('/settings') ? 'page' : undefined}
           >
-            <SettingsIcon className={`w-5 h-5 ${activeView === 'settings' ? 'text-white dark:text-dark-950' : 'text-slate-400 dark:text-cream-200/30'}`} />
+            <SettingsIcon className={`w-5 h-5 ${isActive('/settings') ? 'text-white dark:text-dark-950' : 'text-slate-400 dark:text-cream-200/30'}`} />
             <span className="tracking-tight">Configurações</span>
           </button>
           <button

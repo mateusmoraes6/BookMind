@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { supabase } from './lib/supabase';
 import type { Database } from './lib/database.types';
@@ -16,7 +17,6 @@ import { InstallPWA } from './components/InstallPWA';
 
 function AppContent() {
   const { user, loading } = useAuth();
-  const [activeView, setActiveView] = useState('dashboard');
 
   useEffect(() => {
     // Aplicar tema dark como padrão ao carregar
@@ -67,30 +67,19 @@ function AppContent() {
     return <Auth />;
   }
 
-  const renderView = () => {
-    switch (activeView) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'library':
-        return <Library />;
-      case 'genres':
-        return <Genres />;
-      case 'goals':
-        return <Goals />;
-      case 'lists':
-        return <Lists />;
-      case 'calendar':
-        return <Calendar />;
-      case 'settings':
-        return <Settings />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
   return (
-    <Layout activeView={activeView} onViewChange={setActiveView}>
-      {renderView()}
+    <Layout>
+      <Routes>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/library" element={<Library />} />
+        <Route path="/genres" element={<Genres />} />
+        <Route path="/goals" element={<Goals />} />
+        <Route path="/lists" element={<Lists />} />
+        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
       <InstallPWA />
     </Layout>
   );
