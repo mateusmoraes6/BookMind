@@ -1,18 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Plus, Search, BookOpen, Star, Edit2, Trash2, Eye, ArrowLeft, Layers } from 'lucide-react';
 import { booksService } from '../services/booksService';
-import { useAuth } from '../contexts/AuthContext';
 import BookModal from './BookModal';
 import BookDetailModal from './BookDetailModal';
 import { Book, BOOK_STATUS_METADATA, BOOK_STATUS_LIST, BookStatus } from '../types/book';
 import ConfirmDialog from './ConfirmDialog';
-
-interface Genre {
-  id: string;
-  name: string;
-  color: string;
-  icon: string;
-}
+import { useLibraryData, Genre } from '../hooks/useLibraryData';
 
 interface CategoryShelf {
   genre: Genre | null; // null = "Sem categoria"
@@ -22,10 +15,7 @@ interface CategoryShelf {
 type ViewMode = 'shelves' | 'category-books';
 
 export default function Library() {
-  const { user } = useAuth();
-  const [books, setBooks] = useState<Book[]>([]);
-  const [genres, setGenres] = useState<Genre[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { books, genres, loading, refresh } = useLibraryData();
   const [viewMode, setViewMode] = useState<ViewMode>('shelves');
   const [selectedShelf, setSelectedShelf] = useState<CategoryShelf | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,47 +26,23 @@ export default function Library() {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [bookToDelete, setBookToDelete] = useState<string | null>(null);
 
+  // Sync selectedBook and selectedShelf when books change (Effect extracted from original loadData)
   useEffect(() => {
-    if (user) {
-      loadData();
+    if (selectedBook) {
+      const updated = books.find(b => b.id === selectedBook.id);
+      if (updated) setSelectedBook(updated);
     }
-  }, [user]);
 
-  const loadData = async (silent = false) => {
-    if (!user) return;
-    if (!silent) setLoading(true);
-
-    try {
-      const [allBooks, allGenres] = await Promise.all([
-        booksService.getBooksByUserId(user.id),
-        booksService.getGenresByUserId(user.id)
-      ]);
-
-      setBooks(allBooks);
-      setGenres(allGenres as any);
-      
-      // Update selected book if it exists to reflect changes in the modal (Goal #2)
-      if (selectedBook) {
-        const updated = allBooks.find(b => b.id === selectedBook.id);
-        if (updated) setSelectedBook(updated);
-      }
-
-      // Update selected shelf if we are in category-books view
-      if (viewMode === 'category-books' && selectedShelf) {
-        const updatedShelfBooks = allBooks.filter(b => 
-          (selectedShelf.genre === null ? !b.genre_id : b.genre_id === selectedShelf.genre.id)
-        );
-        setSelectedShelf({
-          ...selectedShelf,
-          books: updatedShelfBooks
-        });
-      }
-    } catch (error) {
-      console.error('Error loading library data:', error);
-    } finally {
-      setLoading(false);
+    if (viewMode === 'category-books' && selectedShelf) {
+      const updatedShelfBooks = books.filter(b =>
+        (selectedShelf.genre === null ? !b.genre_id : b.genre_id === selectedShelf.genre.id)
+      );
+      setSelectedShelf({
+        ...selectedShelf,
+        books: updatedShelfBooks
+      });
     }
-  };
+  }, [books, viewMode]);
 
   // Build shelves: one per genre that has books + "uncategorized" shelf
   const buildShelves = (): CategoryShelf[] => {
@@ -140,12 +106,9 @@ export default function Library() {
     if (!bookToDelete) return;
     try {
       await booksService.deleteBook(bookToDelete);
-      setBooks(books.filter((b) => b.id !== bookToDelete));
+      refresh(true);
       if (selectedShelf) {
-        setSelectedShelf({
-          ...selectedShelf,
-          books: selectedShelf.books.filter((b) => b.id !== bookToDelete),
-        });
+        // Shelf state will be updated via useEffect when books changes
       }
     } catch (error) {
       console.error('Error deleting book:', error);
@@ -167,7 +130,7 @@ export default function Library() {
   const handleModalClose = () => {
     setShowModal(false);
     setSelectedBook(null);
-    loadData(true);
+    refresh(true);
   };
 
   const handleDetailModalClose = () => {
@@ -176,7 +139,7 @@ export default function Library() {
   };
 
   const handleBookUpdated = () => {
-    loadData(true); // Silent refresh
+    refresh(true); // Silent refresh
   };
 
   const getStatusCounts = (shelfBooks: Book[]) => {
@@ -437,11 +400,10 @@ export default function Library() {
         <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={() => setFilterStatus('all')}
-            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              filterStatus === 'all'
+            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${filterStatus === 'all'
                 ? 'bg-slate-900 dark:bg-cream-100 text-white dark:text-dark-950 shadow-lg'
                 : 'bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 text-slate-500 dark:text-cream-200/50 hover:border-dark-600'
-            }`}
+              }`}
           >
             Todos · {shelfCounts.total}
           </button>
@@ -449,11 +411,10 @@ export default function Library() {
             <button
               key={status.id}
               onClick={() => setFilterStatus(status.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                filterStatus === status.id
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${filterStatus === status.id
                   ? 'text-white shadow-lg'
                   : 'bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 text-slate-500 dark:text-cream-200/50'
-              }`}
+                }`}
               style={{
                 backgroundColor: filterStatus === status.id ? status.color : undefined,
                 borderColor: filterStatus !== status.id ? `${status.color}30` : undefined,

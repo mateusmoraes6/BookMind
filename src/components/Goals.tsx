@@ -3,42 +3,13 @@ import {
   Target, Plus, TrendingUp, Calendar, Trophy, X, CheckCircle2, Pencil,
   BookOpen, BookMarked, Flame, Zap, Clock, ChevronDown, ChevronUp,
 } from 'lucide-react';
+import { getLocalDateISO } from '../lib/dateUtils';
+import { useGoalsData, Pace, BookSummary, ProgressData } from '../hooks/useGoalsData';
+
 import { goalsService, Goal } from '../services/goalsService';
 import { useAuth } from '../contexts/AuthContext';
-import { getLocalDateISO, getMonthRange, getDaysInMonth } from '../lib/dateUtils';
-
-// ─── Tipos ────────────────────────────────────────────────────────────────────
 type GoalType = 'daily_pages' | 'monthly_books' | 'yearly_books';
-type Pace = 'completed' | 'ahead' | 'on_track' | 'behind';
-
-// Goal interface moved to goalsService.ts
-
-interface BookSummary {
-  id: string;
-  title: string;
-  author: string;
-  cover_url: string | null;
-  total_pages: number;
-  current_page: number;
-  started_at: string | null;
-  completed_at: string | null;
-  status: string;
-  /** true = livro foi iniciado antes deste mês (flag visual) */
-  started_in_different_month: boolean;
-}
-
-interface ProgressData {
-  current: number;
-  target: number;
-  percentage: number;
-  // Dados extras para metas mensais/anuais
-  started?: number;
-  startedList?: BookSummary[];
-  completedList?: BookSummary[];
-  inProgressThisMonth?: BookSummary[];
-  daysRemaining?: number;
-  pace?: Pace;
-}
+// Types migrated to useGoalsData.ts
 
 // ─── Config de cada tipo de meta ──────────────────────────────────────────────
 const GOAL_CONFIGS: Record<
@@ -190,13 +161,11 @@ function BookMiniCard({ book, type }: { book: BookSummary; type: 'completed' | '
 }
 
 function MonthlyGoalCard({
-  goal,
   p,
   cfg,
   onEdit,
   onDeactivate,
 }: {
-  goal: Goal;
   p: ProgressData;
   cfg: typeof GOAL_CONFIGS[GoalType];
   onEdit: () => void;
@@ -217,8 +186,8 @@ function MonthlyGoalCard({
   return (
     <div
       className={`relative bg-white dark:bg-dark-900 rounded-3xl border transition-all duration-300 overflow-hidden group ${done
-          ? 'border-green-400/50 dark:border-green-500/20 shadow-xl shadow-green-500/5'
-          : 'border-slate-200 dark:border-dark-800 hover:border-slate-300 dark:hover:border-dark-700 hover:shadow-2xl'
+        ? 'border-green-400/50 dark:border-green-500/20 shadow-xl shadow-green-500/5'
+        : 'border-slate-200 dark:border-dark-800 hover:border-slate-300 dark:hover:border-dark-700 hover:shadow-2xl'
         }`}
     >
       {/* Barra de cor no topo */}
@@ -418,11 +387,9 @@ function MonthlyGoalCard({
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function Goals() {
   const { user } = useAuth();
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [progress, setProgress] = useState<Record<string, ProgressData>>({});
+  const { goals, progress, loading, refresh } = useGoalsData();
   const [showModal, setShowModal] = useState(false);
   const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<{ goal_type: GoalType; target_value: string }>({
     goal_type: 'daily_pages',
     target_value: '',
@@ -440,134 +407,6 @@ export default function Goals() {
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
 
-  useEffect(() => {
-    if (user) loadGoals();
-  }, [user]);
-
-  // ── Carregar metas ──────────────────────────────────────────────────────────
-  const loadGoals = async () => {
-    if (!user) return;
-    try {
-      const data = await goalsService.getActiveGoals(user.id);
-      setGoals(data);
-      await calculateProgress(data);
-    } catch (error) {
-      console.error('Error loading goals:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ── Calcular progresso de cada meta ────────────────────────────────────────
-  const calculateProgress = async (goalList: Goal[]) => {
-    if (!user) return;
-    const result: Record<string, ProgressData> = {};
-    const now = new Date();
-
-    for (const goal of goalList) {
-      const target = goal.target_value;
-      let pd: ProgressData = { current: 0, target, percentage: 0 };
-
-      // ── META DIÁRIA: Páginas lidas hoje ────────────────────────────────────
-      if (goal.goal_type === 'daily_pages') {
-        const today = getLocalDateISO();
-        const current = await goalsService.getPagesReadByDate(user.id, today);
-        pd = { current, target, percentage: Math.min((current / target) * 100, 100) };
-
-        // ── META MENSAL: Livros FINALIZADOS no mês corrente ───────────────────
-      } else if (goal.goal_type === 'monthly_books') {
-        const year = now.getFullYear();
-        const month = now.getMonth();
-        const { start: monthStart, end: monthEnd } = getMonthRange(year, month);
-        const totalDays = getDaysInMonth(year, month);
-        const dayOfMonth = now.getDate();
-        const daysRemaining = totalDays - dayOfMonth;
-
-        // 1. Livros FINALIZADOS neste mês → contam para a meta
-        const completedData = await goalsService.getCompletedBooksInRange(user.id, monthStart, monthEnd);
-
-        // 2. Livros INICIADOS neste mês → métrica complementar
-        const startedData = await goalsService.getStartedBooksInRange(user.id, monthStart, monthEnd);
-
-        const completedList: BookSummary[] = (completedData || []).map((b: any) => ({
-          ...b,
-          // Flag visual: o livro foi finalizado neste mês, mas iniciado num mês anterior?
-          started_in_different_month: b.started_at
-            ? b.started_at < monthStart
-            : false,
-        }));
-
-        const startedList: BookSummary[] = (startedData || []).map((b: any) => ({
-          ...b,
-          started_in_different_month: false,
-        }));
-
-        const inProgressThisMonth = startedList.filter(b => b.status === 'in_progress');
-        const completedCount = completedList.length;
-
-        // Cálculo de ritmo
-        const expectedByNow = (target / totalDays) * dayOfMonth;
-        let pace: Pace;
-        if (completedCount >= target) pace = 'completed';
-        else if (completedCount >= expectedByNow) pace = 'ahead';
-        else if (completedCount >= expectedByNow * 0.6) pace = 'on_track';
-        else pace = 'behind';
-
-        pd = {
-          current: completedCount,
-          target,
-          percentage: Math.min((completedCount / target) * 100, 100),
-          started: startedList.length,
-          startedList,
-          completedList,
-          inProgressThisMonth,
-          daysRemaining,
-          pace,
-        };
-
-        // ── META ANUAL: Livros FINALIZADOS no ano corrente ────────────────────
-      } else if (goal.goal_type === 'yearly_books') {
-        const year = now.getFullYear();
-        const yearStart = `${year}-01-01`;
-        const yearEnd = `${year}-12-31`;
-        const dayOfYear = Math.floor(
-          (now.getTime() - new Date(year, 0, 0).getTime()) / 86400000
-        );
-        const totalDays = (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)) ? 366 : 365;
-        const daysRemaining = totalDays - dayOfYear;
-
-        const completedData = await goalsService.getCompletedBooksInRange(user.id, yearStart, yearEnd);
-        const startedData = await goalsService.getStartedBooksInRange(user.id, yearStart, yearEnd);
-
-        const completedList: BookSummary[] = (completedData || []).map((b: any) => ({
-          ...b,
-          started_in_different_month: false,
-        }));
-        const completedCount = completedList.length;
-
-        const expectedByNow = (target / totalDays) * dayOfYear;
-        let pace: Pace;
-        if (completedCount >= target) pace = 'completed';
-        else if (completedCount >= expectedByNow) pace = 'ahead';
-        else if (completedCount >= expectedByNow * 0.6) pace = 'on_track';
-        else pace = 'behind';
-
-        pd = {
-          current: completedCount,
-          target,
-          percentage: Math.min((completedCount / target) * 100, 100),
-          started: startedData?.length || 0,
-          completedList,
-          daysRemaining,
-          pace,
-        };
-      }
-
-      result[goal.id] = pd;
-    }
-
-    setProgress(result);
-  };
 
   // ── Criar / Editar meta ─────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
@@ -615,7 +454,7 @@ export default function Goals() {
       setShowModal(false);
       setEditingGoalId(null);
       setFormData({ goal_type: 'daily_pages', target_value: '' });
-      loadGoals();
+      refresh();
     } catch (error) {
       console.error('Error saving goal:', error);
     }
@@ -625,7 +464,7 @@ export default function Goals() {
   const handleDeactivate = async (goalId: string) => {
     try {
       await goalsService.deactivateGoal(goalId);
-      loadGoals();
+      refresh();
     } catch (error) {
       console.error('Error deactivating goal:', error);
     }
@@ -765,7 +604,6 @@ export default function Goals() {
                       return (
                         <MonthlyGoalCard
                           key={goal.id}
-                          goal={goal}
                           p={p}
                           cfg={cfg}
                           onEdit={() => handleEditClicked(goal)}
@@ -781,8 +619,8 @@ export default function Goals() {
                       <div
                         key={goal.id}
                         className={`relative bg-white dark:bg-dark-900 rounded-3xl border transition-all duration-300 overflow-hidden group ${done
-                            ? 'border-green-400/50 dark:border-green-500/20 shadow-xl shadow-green-500/5'
-                            : 'border-slate-200 dark:border-dark-800 hover:border-slate-300 dark:hover:border-dark-700 hover:shadow-2xl'
+                          ? 'border-green-400/50 dark:border-green-500/20 shadow-xl shadow-green-500/5'
+                          : 'border-slate-200 dark:border-dark-800 hover:border-slate-300 dark:hover:border-dark-700 hover:shadow-2xl'
                           }`}
                       >
                         <div className={`h-1 w-full bg-gradient-to-r ${cfg.gradient}`} style={{ opacity: done ? 1 : 0.6 }} />
@@ -856,7 +694,7 @@ export default function Goals() {
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
           onClick={(e) => e.target === e.currentTarget && setShowModal(false)}
         >
-          <div 
+          <div
             className="bg-white dark:bg-dark-900 rounded-[2.5rem] w-full max-w-lg border border-slate-200 dark:border-dark-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300"
             role="dialog"
             aria-modal="true"
@@ -901,8 +739,8 @@ export default function Goals() {
                       type="button"
                       onClick={() => applyPreset(p)}
                       className={`text-[11px] px-5 py-2.5 rounded-2xl font-black uppercase tracking-wider transition-all border focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-950 ${formData.goal_type === p.type && formData.target_value === String(p.value)
-                          ? 'bg-cream-100 text-dark-950 border-cream-100 shadow-xl shadow-black/40 scale-105'
-                          : 'bg-slate-50 dark:bg-dark-900 text-slate-500 dark:text-cream-200/30 hover:bg-dark-800 dark:hover:bg-dark-800 hover:text-cream-100 dark:hover:text-cream-100 border-slate-100 dark:border-dark-800'
+                        ? 'bg-cream-100 text-dark-950 border-cream-100 shadow-xl shadow-black/40 scale-105'
+                        : 'bg-slate-50 dark:bg-dark-900 text-slate-500 dark:text-cream-200/30 hover:bg-dark-800 dark:hover:bg-dark-800 hover:text-cream-100 dark:hover:text-cream-100 border-slate-100 dark:border-dark-800'
                         }`}
                       aria-pressed={formData.goal_type === p.type && formData.target_value === String(p.value)}
                     >
@@ -927,8 +765,8 @@ export default function Goals() {
                         role="radio"
                         aria-checked={formData.goal_type === type}
                         className={`flex flex-col gap-3 p-4 rounded-3xl border-2 text-left transition-all group relative overflow-hidden focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-950 ${formData.goal_type === type
-                            ? 'border-cream-100 bg-cream-100/5'
-                            : 'border-slate-100 dark:border-dark-800 hover:border-dark-700 bg-slate-50/50 dark:bg-black/20'
+                          ? 'border-cream-100 bg-cream-100/5'
+                          : 'border-slate-100 dark:border-dark-800 hover:border-dark-700 bg-slate-50/50 dark:bg-black/20'
                           }`}
                       >
                         <div className="p-2 rounded-xl w-fit transition-transform group-hover:scale-110" style={{ backgroundColor: `${cfg.color}15` }}>

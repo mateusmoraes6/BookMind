@@ -4,62 +4,39 @@ import {
   Flame, Trophy, BarChart2, ChevronLeft, ChevronRight,
   PauseCircle
 } from 'lucide-react';
-import { booksService } from '../services/booksService';
-import { sessionsService, ReadingSession } from '../services/sessionsService';
-import { goalsService, Goal } from '../services/goalsService';
-import { useAuth } from '../contexts/AuthContext';
 import { getLocalDateISO } from '../lib/dateUtils';
+import { useDashboardData } from '../hooks/useDashboardData';
 import BookDetailModal from './BookDetailModal';
 import BookModal from './BookModal';
 import { Book, BOOK_STATUS_METADATA, BookStatus } from '../types/book';
 
-interface DashboardStats {
-  totalBooks: number;
-  booksInProgress: number;
-  booksCompleted: number;
-  booksPaused: number;
-  booksWantToRead: number;
-  pagesReadToday: number;
-  currentStreak: number;
-  thisMonthBooks: number;
-  totalPagesRead: number;
-}
+// Interfaces moved to sessionsService.ts
 
 // Interfaces moved to sessionsService.ts
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const [stats, setStats] = useState<DashboardStats>({
-    totalBooks: 0,
-    booksInProgress: 0,
-    booksCompleted: 0,
-    booksPaused: 0,
-    booksWantToRead: 0,
-    pagesReadToday: 0,
-    currentStreak: 0,
-    thisMonthBooks: 0,
-    totalPagesRead: 0,
-  });
-  const [currentBooks, setCurrentBooks] = useState<Book[]>([]);
+  const { 
+    stats, currentBooks, recentBooks, allBooks, 
+    last7Days, activeGoals, loading, refresh 
+  } = useDashboardData();
+
   const [activeBookIndex, setActiveBookIndex] = useState(0);
-  const [recentBooks, setRecentBooks] = useState<Book[]>([]);
-  const [last7Days, setLast7Days] = useState<{ date: string; pages: number }[]>([]);
-  const [activeGoals, setActiveGoals] = useState<Goal[]>([]);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [loading, setLoading] = useState(true);
   // Gradiente dinâmico extraído da capa do livro atual
   const [heroGradient, setHeroGradient] = useState<string>(
     'linear-gradient(135deg, #0a0a0a, #121212, #1a1a1a)'
   );
   const [gradientLoaded, setGradientLoaded] = useState(false);
 
+  // Sync selectedBook when data changes
   useEffect(() => {
-    if (user) {
-      loadDashboardData();
+    if (selectedBook) {
+      const updated = allBooks.find(b => b.id === selectedBook.id);
+      if (updated) setSelectedBook(updated);
     }
-  }, [user]);
+  }, [allBooks]);
 
   // ── Extração de cor dominante da capa ──────────────────────────────────────
   useEffect(() => {
@@ -86,95 +63,6 @@ export default function Dashboard() {
       });
   }, [activeBookIndex, currentBooks]);
 
-  const loadDashboardData = async (silent = false) => {
-    if (!user) return;
-    if (!silent) setLoading(true);
-
-    try {
-      const [books, sessions, goals] = await Promise.all([
-        booksService.getRecentBooksByUserId(user.id),
-        sessionsService.getSessionsByUserId(user.id),
-        goalsService.getActiveGoals(user.id)
-      ]);
-
-      if (books) {
-        const total = books.length;
-        const inProgressBooks = books.filter((b) => b.status === 'in_progress');
-        const completedCount = books.filter((b) => b.status === 'completed').length;
-        const pausedCount = books.filter((b) => b.status === 'paused').length;
-        const wantToReadCount = books.filter((b) => b.status === 'want_to_read').length;
-
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const thisMonth = books.filter(
-          (b) => b.completed_at && new Date(b.completed_at) >= startOfMonth
-        ).length;
-
-        const sorted = [...inProgressBooks].sort(
-          (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-        );
-        setCurrentBooks(sorted);
-        
-        // Goal 2: Ensure selected book is updated for the modal
-        if (selectedBook) {
-          const updated = books.find(b => b.id === selectedBook.id);
-          if (updated) setSelectedBook(updated);
-        }
-
-        setStats((prev) => ({
-          ...prev,
-          totalBooks: total,
-          booksInProgress: inProgressBooks.length,
-          booksCompleted: completedCount,
-          booksPaused: pausedCount,
-          booksWantToRead: wantToReadCount,
-          thisMonthBooks: thisMonth,
-        }));
-
-        const heroIds = new Set(sorted.map((b) => b.id));
-        setRecentBooks(books.filter((b) => !heroIds.has(b.id)).slice(0, 6));
-      }
-
-      if (sessions) {
-        const today = getLocalDateISO();
-
-        const todayPages = sessions
-          .filter((s) => s.session_date === today)
-          .reduce((sum, s) => sum + (s.pages_read || 0), 0);
-
-        const totalPagesRead = sessions.reduce((sum, s) => sum + (s.pages_read || 0), 0);
-        const streak = calculateStreak(sessions as any);
-
-        // Últimos 7 dias
-        const days: { date: string; pages: number }[] = [];
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          const dateStr = getLocalDateISO(d);
-          const pages = sessions
-            .filter((s) => s.session_date === dateStr)
-            .reduce((sum, s) => sum + (s.pages_read || 0), 0);
-          days.push({ date: dateStr, pages });
-        }
-        setLast7Days(days);
-
-        setStats((prev) => ({
-          ...prev,
-          pagesReadToday: todayPages,
-          currentStreak: streak,
-          totalPagesRead,
-        }));
-      }
-
-      if (goals) {
-        setActiveGoals(goals as any);
-      }
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // ── Helpers de extração de cor ────────────────────────────────────────────
   const rgbToHsl = (r: number, g: number, b: number): [number, number, number] => {
@@ -270,32 +158,6 @@ export default function Dashboard() {
     });
   };
 
-  const calculateStreak = (sessions: ReadingSession[]) => {
-    if (sessions.length === 0) return 0;
-    const dates = [...new Set(sessions.map((s) => s.session_date))].sort().reverse();
-    let streak = 0;
-    const today = new Date();
-
-    // Check if the first date is either today or yesterday to continue/start a streak
-    const todayStr = getLocalDateISO(today);
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    const yesterdayStr = getLocalDateISO(yesterday);
-
-    if (dates[0] !== todayStr && dates[0] !== yesterdayStr) return 0;
-
-    for (let i = 0; i < dates.length; i++) {
-      const expectedDate = new Date(dates[0] === todayStr ? today : yesterday);
-      expectedDate.setDate(expectedDate.getDate() - i);
-
-      if (dates[i] === getLocalDateISO(expectedDate)) {
-        streak++;
-      } else {
-        break;
-      }
-    }
-    return streak;
-  };
 
   const getStatusLabel = (status: string) => {
     return BOOK_STATUS_METADATA[status as BookStatus]?.label || status;
@@ -354,7 +216,7 @@ export default function Dashboard() {
   ];
 
   const handleBookUpdated = () => {
-    loadDashboardData(true); // Silent refresh
+    refresh(true); // Silent refresh
   };
 
   // ── Derived values & handlers (all before early return) ───────────────────
@@ -534,8 +396,8 @@ export default function Dashboard() {
                       setActiveBookIndex(i);
                     }}
                     className={`rounded-full transition-all duration-300 ${i === activeBookIndex
-                        ? 'w-5 h-2 bg-white'
-                        : 'w-2 h-2 bg-white/30 hover:bg-white/50'
+                      ? 'w-5 h-2 bg-white'
+                      : 'w-2 h-2 bg-white/30 hover:bg-white/50'
                       }`}
                     aria-label={`Ir para livro ${i + 1}`}
                   />
@@ -803,7 +665,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {book.status === 'in_progress' && (
                     <div className="mt-3">
                       <div className="h-1 bg-slate-100 dark:bg-dark-800 rounded-full overflow-hidden">
@@ -827,7 +689,7 @@ export default function Dashboard() {
           onClose={() => {
             setShowDetailModal(false);
             setSelectedBook(null);
-            loadDashboardData(true);
+            refresh(true);
           }}
           onBookUpdated={handleBookUpdated}
           onEdit={() => {
@@ -843,7 +705,7 @@ export default function Dashboard() {
           onClose={() => {
             setShowEditModal(false);
             setSelectedBook(null);
-            loadDashboardData(true);
+            refresh(true);
           }}
         />
       )}
