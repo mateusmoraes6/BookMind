@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Plus, List, Edit2, Trash2, BookOpen, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import ConfirmDialog from './ConfirmDialog';
 
 interface CustomList {
   id: string;
@@ -25,6 +26,8 @@ export default function Lists() {
     description: '',
     color: '#8b5cf6',
   });
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [listToDelete, setListToDelete] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -94,10 +97,17 @@ export default function Lists() {
     loadData();
   };
 
-  const handleDelete = async (listId: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta lista?')) return;
-    await (supabase.from('custom_lists') as any).delete().eq('id', listId);
+  const handleDelete = (listId: string) => {
+    setListToDelete(listId);
+    setShowConfirmDelete(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!listToDelete) return;
+    await (supabase.from('custom_lists') as any).delete().eq('id', listToDelete);
     loadData();
+    setShowConfirmDelete(false);
+    setListToDelete(null);
   };
 
   const handleEdit = (list: CustomList) => {
@@ -412,6 +422,19 @@ export default function Lists() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={showConfirmDelete}
+        title="Excluir Lista"
+        message="Tem certeza que deseja excluir esta lista? Todos os livros continuarão na sua biblioteca, mas a coleção será removida."
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          setShowConfirmDelete(false);
+          setListToDelete(null);
+        }}
+        confirmLabel="Excluir"
+        type="danger"
+      />
     </div>
   );
 }

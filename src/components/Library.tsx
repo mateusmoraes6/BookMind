@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import BookModal from './BookModal';
 import BookDetailModal from './BookDetailModal';
 import { Book, BOOK_STATUS_METADATA, BOOK_STATUS_LIST, BookStatus } from '../types/book';
+import ConfirmDialog from './ConfirmDialog';
 
 interface Genre {
   id: string;
@@ -32,6 +33,8 @@ export default function Library() {
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [bookToDelete, setBookToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -131,18 +134,25 @@ export default function Library() {
     return filtered;
   };
 
-  const handleDelete = async (bookId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este livro?')) return;
-    const { error } = await supabase.from('books').delete().eq('id', bookId);
+  const handleDelete = (bookId: string) => {
+    setBookToDelete(bookId);
+    setShowConfirmDelete(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!bookToDelete) return;
+    const { error } = await supabase.from('books').delete().eq('id', bookToDelete);
     if (!error) {
-      setBooks(books.filter((b) => b.id !== bookId));
+      setBooks(books.filter((b) => b.id !== bookToDelete));
       if (selectedShelf) {
         setSelectedShelf({
           ...selectedShelf,
-          books: selectedShelf.books.filter((b) => b.id !== bookId),
+          books: selectedShelf.books.filter((b) => b.id !== bookToDelete),
         });
       }
     }
+    setShowConfirmDelete(false);
+    setBookToDelete(null);
   };
 
   const handleEdit = (book: Book) => {
@@ -357,6 +367,19 @@ export default function Library() {
         {showModal && (
           <BookModal book={selectedBook} onClose={handleModalClose} />
         )}
+
+        <ConfirmDialog
+          isOpen={showConfirmDelete}
+          title="Excluir Livro"
+          message="Tem certeza que deseja excluir este livro? Esta ação não pode ser desfeita."
+          onConfirm={confirmDelete}
+          onCancel={() => {
+            setShowConfirmDelete(false);
+            setBookToDelete(null);
+          }}
+          confirmLabel="Excluir"
+          type="danger"
+        />
       </div>
     );
   }
@@ -637,6 +660,19 @@ export default function Library() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={showConfirmDelete}
+        title="Excluir Livro"
+        message="Tem certeza que deseja excluir este livro? Esta ação não pode ser desfeita e removerá todas as sessões associadas."
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          setShowConfirmDelete(false);
+          setBookToDelete(null);
+        }}
+        confirmLabel="Excluir"
+        type="danger"
+      />
     </div>
   );
 }

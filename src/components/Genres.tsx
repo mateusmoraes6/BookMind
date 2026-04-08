@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Plus, Tag, Edit2, Trash2, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import ConfirmDialog from './ConfirmDialog';
 
 interface Genre {
   id: string;
@@ -29,6 +30,12 @@ export default function Genres() {
   const [genreForm, setGenreForm] = useState({ name: '', color: '#6366f1', icon: 'book' });
   const [subcategoryForm, setSubcategoryForm] = useState({ name: '', genre_id: '' });
   const [loading, setLoading] = useState(true);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -119,16 +126,30 @@ export default function Genres() {
     loadData();
   };
 
-  const handleDeleteGenre = async (genreId: string) => {
-    if (!confirm('Tem certeza? Isto removerá todas as subcategorias deste gênero.')) return;
-    await (supabase.from('genres') as any).delete().eq('id', genreId);
-    loadData();
+  const handleDeleteGenre = (genreId: string) => {
+    setConfirmConfig({
+      title: 'Excluir Gênero',
+      message: 'Tem certeza? Isto removerá permanentemente este gênero e todas as suas subcategorias.',
+      onConfirm: async () => {
+        await (supabase.from('genres') as any).delete().eq('id', genreId);
+        loadData();
+        setShowConfirm(false);
+      },
+    });
+    setShowConfirm(true);
   };
 
-  const handleDeleteSubcategory = async (subcategoryId: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta subcategoria?')) return;
-    await (supabase.from('subcategories') as any).delete().eq('id', subcategoryId);
-    loadData();
+  const handleDeleteSubcategory = (subcategoryId: string) => {
+    setConfirmConfig({
+      title: 'Excluir Subcategoria',
+      message: 'Tem certeza que deseja excluir esta subcategoria?',
+      onConfirm: async () => {
+        await (supabase.from('subcategories') as any).delete().eq('id', subcategoryId);
+        loadData();
+        setShowConfirm(false);
+      },
+    });
+    setShowConfirm(true);
   };
 
   const openEditGenre = (genre: Genre) => {
@@ -413,6 +434,18 @@ export default function Genres() {
             </form>
           </div>
         </div>
+      )}
+
+      {confirmConfig && (
+        <ConfirmDialog
+          isOpen={showConfirm}
+          title={confirmConfig.title}
+          message={confirmConfig.message}
+          onConfirm={confirmConfig.onConfirm}
+          onCancel={() => setShowConfirm(false)}
+          confirmLabel="Excluir"
+          type="danger"
+        />
       )}
     </div>
   );

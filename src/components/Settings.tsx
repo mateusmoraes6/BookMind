@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Save, Moon, Sun, Bell, Layout, Download, Smartphone } from 'lucide-react';
+import ConfirmDialog from './ConfirmDialog';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { getLocalISOString } from '../lib/dateUtils';
@@ -16,6 +17,12 @@ export default function Settings() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+    const [notification, setNotification] = useState<{
+        title: string;
+        message: string;
+        type: 'danger' | 'info' | 'warning';
+    } | null>(null);
+    const [showNotification, setShowNotification] = useState(false);
     const [isInstalled, setIsInstalled] = useState(false);
     const [preferences, setPreferences] = useState<UserPreferences>({
         daily_reading_reminder: true,
@@ -54,7 +61,12 @@ export default function Settings() {
             }
             setDeferredPrompt(null);
         } else {
-            alert('Para instalar o BookMind:\n\nChrome/Edge: Clique nos 3 pontos ⋮ e escolha "Instalar BookMind" ou "Instalar Aplicativo".\n\nSafari (iOS): Toque no ícone de compartilhar (quadrado com seta) e escolha "Adicionar à Tela de Início".');
+            setNotification({
+                title: 'Como Instalar',
+                message: 'Para instalar o BookMind:\n\nChrome/Edge: Clique nos 3 pontos ⋮ e escolha "Instalar BookMind" ou "Instalar Aplicativo".\n\nSafari (iOS): Toque no ícone de compartilhar (quadrado com seta) e escolha "Adicionar à Tela de Início".',
+                type: 'info',
+            });
+            setShowNotification(true);
         }
     };
 
@@ -114,10 +126,20 @@ export default function Settings() {
             if (error) throw error;
 
             applyTheme(preferences.theme);
-            alert('Configurações salvas com sucesso!');
+            setNotification({
+                title: 'Sucesso',
+                message: 'Configurações salvas com sucesso!',
+                type: 'info',
+            });
+            setShowNotification(true);
         } catch (error) {
             console.error('Error saving preferences:', error);
-            alert('Erro ao salvar configurações.');
+            setNotification({
+                title: 'Erro',
+                message: 'Erro ao salvar configurações.',
+                type: 'danger',
+            });
+            setShowNotification(true);
         } finally {
             setSaving(false);
         }
@@ -133,9 +155,11 @@ export default function Settings() {
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
-            <div>
-                <h1 className="text-3xl font-black text-slate-900 dark:text-cream-100">Configurações</h1>
-                <p className="text-slate-600 dark:text-slate-400 mt-2">Personalize sua experiência no BookMind</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-black text-slate-900 dark:text-cream-100 tracking-tight leading-tight">Configurações</h1>
+                    <p className="text-slate-600 dark:text-slate-400 mt-2 font-medium">Personalize sua experiência no BookMind</p>
+                </div>
             </div>
 
             <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-dark-800 p-8 space-y-10 relative overflow-hidden">
@@ -143,8 +167,8 @@ export default function Settings() {
 
                 {/* Appearance */}
                 <section className="space-y-6 relative z-10">
-                    <div className="flex items-center gap-3 text-lg font-black text-slate-900 dark:text-cream-100 tracking-tight">
-                        <div className="w-10 h-10 bg-cream-100/10 rounded-xl flex items-center justify-center">
+                    <div className="flex items-center gap-4 text-lg font-black text-slate-900 dark:text-cream-50 tracking-tight">
+                        <div className="w-10 h-10 bg-cream-100/10 rounded-2xl flex items-center justify-center border border-cream-100/10 shadow-sm">
                             <Sun className="w-5 h-5 text-cream-100" />
                         </div>
                         <h2>Aparência</h2>
@@ -159,13 +183,13 @@ export default function Settings() {
                             }}
                             role="radio"
                             aria-checked={preferences.theme === 'light'}
-                            className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition ${preferences.theme === 'light'
-                                ? 'border-cream-100 bg-cream-100 dark:border-dark-800'
-                                : 'border-slate-200 hover:border-slate-300 dark:border-dark-800 dark:hover:border-dark-700'
+                            className={`p-6 rounded-[2rem] border-2 flex flex-col items-center gap-3 transition-all duration-300 ${preferences.theme === 'light'
+                                ? 'border-cream-100 bg-cream-100 text-dark-950 shadow-xl shadow-cream-100/20'
+                                : 'border-slate-100 dark:border-dark-800 hover:border-slate-200 dark:hover:border-dark-700 bg-slate-50 dark:bg-dark-950/50'
                                 }`}
                         >
-                            <Sun className={`w-6 h-6 ${preferences.theme === 'light' ? 'text-dark-950' : 'text-amber-500 dark:text-cream-200'}`} />
-                            <span className={`font-medium ${preferences.theme === 'light' ? 'text-dark-950' : 'text-slate-900 dark:text-cream-100'}`}>Claro</span>
+                            <Sun className={`w-7 h-7 ${preferences.theme === 'light' ? 'text-dark-950' : 'text-amber-500'}`} />
+                            <span className="font-black text-xs uppercase tracking-widest">Claro</span>
                         </button>
                         <button
                             onClick={() => {
@@ -174,31 +198,34 @@ export default function Settings() {
                             }}
                             role="radio"
                             aria-checked={preferences.theme === 'dark'}
-                            className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition ${preferences.theme === 'dark'
-                                ? 'border-dark-950 bg-dark-950 text-white dark:border-cream-100'
-                                : 'border-slate-200 hover:border-slate-300 dark:border-dark-800 dark:hover:border-dark-700'
+                            className={`p-6 rounded-[2rem] border-2 flex flex-col items-center gap-3 transition-all duration-300 ${preferences.theme === 'dark'
+                                ? 'border-dark-950 bg-dark-950 text-cream-100 shadow-xl shadow-black/40'
+                                : 'border-slate-100 dark:border-dark-800 hover:border-slate-200 dark:hover:border-dark-700 bg-slate-50 dark:bg-dark-950/50'
                                 }`}
                         >
-                            <Moon className={`w-6 h-6 ${preferences.theme === 'dark' ? 'text-cream-100' : 'text-indigo-400 dark:text-cream-200'}`} />
-                            <span className={`font-medium ${preferences.theme === 'dark' ? 'text-cream-100' : 'text-slate-900 dark:text-cream-100'}`}>Escuro</span>
+                            <Moon className={`w-7 h-7 ${preferences.theme === 'dark' ? 'text-cream-100' : 'text-indigo-400'}`} />
+                            <span className="font-black text-xs uppercase tracking-widest">Escuro</span>
                         </button>
                     </div>
                 </section>
 
-                <hr className="border-slate-200 dark:border-dark-800" />
+                <hr className="border-slate-100 dark:border-dark-800" />
 
                 {/* Notifications */}
                 <section className="space-y-6 relative z-10">
-                    <div className="flex items-center gap-3 text-lg font-black text-slate-900 dark:text-cream-100 tracking-tight">
-                        <div className="w-10 h-10 bg-cream-100/10 rounded-xl flex items-center justify-center">
+                    <div className="flex items-center gap-4 text-lg font-black text-slate-900 dark:text-cream-50 tracking-tight">
+                        <div className="w-10 h-10 bg-cream-100/10 rounded-2xl flex items-center justify-center border border-cream-100/10 shadow-sm">
                             <Bell className="w-5 h-5 text-cream-100" />
                         </div>
                         <h2>Notificações</h2>
                     </div>
 
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <label htmlFor="reminder-toggle" className="text-sm font-bold text-slate-700 dark:text-cream-200/60">Lembrete diário de leitura</label>
+                        <div className="flex items-center justify-between p-4 px-6 bg-slate-50/50 dark:bg-dark-950/50 rounded-[1.5rem] border border-transparent dark:border-dark-800 transition-all hover:bg-slate-50 dark:hover:bg-dark-950">
+                            <div>
+                                <label htmlFor="reminder-toggle" className="text-sm font-black text-slate-900 dark:text-cream-100 tracking-tight">Lembrete diário de leitura</label>
+                                <p className="text-[10px] text-slate-500 dark:text-cream-200/20 uppercase font-black tracking-widest mt-1">Sempre no mesmo horário</p>
+                            </div>
                             <button
                                 id="reminder-toggle"
                                 onClick={() => setPreferences(p => ({ ...p, daily_reading_reminder: !p.daily_reading_reminder }))}
@@ -206,20 +233,23 @@ export default function Settings() {
                                 className={`w-14 h-7 rounded-full transition-all relative ${preferences.daily_reading_reminder ? 'bg-cream-100' : 'bg-slate-200 dark:bg-dark-800'
                                     }`}
                             >
-                                <div className={`absolute top-1 left-1 w-5 h-5 rounded-full transition-transform duration-300 shadow-sm ${preferences.daily_reading_reminder ? 'translate-x-7 bg-dark-950' : 'translate-x-0 bg-white'
+                                <div className={`absolute top-1 left-1 w-5 h-5 rounded-full transition-transform duration-500 shadow-md ${preferences.daily_reading_reminder ? 'translate-x-7 bg-dark-950' : 'translate-x-0 bg-white'
                                     }`} />
                             </button>
                         </div>
 
                         {preferences.daily_reading_reminder && (
-                            <div className="flex items-center justify-between bg-slate-50 dark:bg-dark-950 p-4 rounded-2xl border border-transparent dark:border-dark-800">
-                                <label htmlFor="reminder_time" className="text-sm font-bold text-slate-700 dark:text-cream-200/60">Horário do lembrete</label>
+                            <div className="flex items-center justify-between bg-slate-50 dark:bg-dark-950 p-6 rounded-[1.5rem] border border-transparent dark:border-dark-800 animate-in fade-in slide-in-from-top-4 duration-300">
+                                <div>
+                                    <label htmlFor="reminder_time" className="text-sm font-black text-slate-900 dark:text-cream-100 tracking-tight">Horário do lembrete</label>
+                                    <p className="text-[10px] text-slate-500 dark:text-cream-200/20 uppercase font-black tracking-widest mt-1">Horário de Brasília</p>
+                                </div>
                                 <input
                                     id="reminder_time"
                                     type="time"
                                     value={preferences.reminder_time}
                                     onChange={(e) => setPreferences(p => ({ ...p, reminder_time: e.target.value }))}
-                                    className="px-4 py-2 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black transition-all"
+                                    className="px-5 py-3 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black transition-all shadow-sm"
                                 />
                             </div>
                         )}
@@ -230,20 +260,23 @@ export default function Settings() {
 
                 {/* Interface */}
                 <section className="space-y-6 relative z-10">
-                    <div className="flex items-center gap-3 text-lg font-black text-slate-900 dark:text-cream-100 tracking-tight">
-                        <div className="w-10 h-10 bg-cream-100/10 rounded-xl flex items-center justify-center">
+                    <div className="flex items-center gap-4 text-lg font-black text-slate-900 dark:text-cream-50 tracking-tight">
+                        <div className="w-10 h-10 bg-cream-100/10 rounded-2xl flex items-center justify-center border border-cream-100/10 shadow-sm">
                             <Layout className="w-5 h-5 text-cream-100" />
                         </div>
                         <h2>Interface</h2>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                        <label htmlFor="books_per_page" className="text-sm font-bold text-slate-700 dark:text-cream-200/60">Livros por página</label>
+                    <div className="flex items-center justify-between p-4 px-6 bg-slate-50/50 dark:bg-dark-950/50 rounded-[1.5rem] border border-transparent dark:border-dark-800">
+                        <div>
+                            <label htmlFor="books_per_page" className="text-sm font-black text-slate-900 dark:text-cream-100 tracking-tight">Livros por página</label>
+                            <p className="text-[10px] text-slate-500 dark:text-cream-200/20 uppercase font-black tracking-widest mt-1">Visualização da biblioteca</p>
+                        </div>
                         <select
                             id="books_per_page"
                             value={preferences.books_per_page}
                             onChange={(e) => setPreferences(p => ({ ...p, books_per_page: Number(e.target.value) }))}
-                            className="px-4 py-2 bg-slate-50 dark:bg-dark-950 border border-slate-200 dark:border-dark-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black transition-all cursor-pointer"
+                            className="px-5 py-3 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black transition-all cursor-pointer shadow-sm"
                         >
                             <option value={8} className="bg-dark-900">8 livros</option>
                             <option value={12} className="bg-dark-900">12 livros</option>
@@ -253,40 +286,41 @@ export default function Settings() {
                     </div>
                 </section>
 
-                <hr className="border-slate-200 dark:border-dark-800" />
+                <hr className="border-slate-100 dark:border-dark-800" />
 
                 {/* PWA Section */}
                 <section className="space-y-6 relative z-10">
-                    <div className="flex items-center gap-3 text-lg font-black text-slate-900 dark:text-cream-100 tracking-tight">
-                        <div className="w-10 h-10 bg-cream-100/10 rounded-xl flex items-center justify-center">
+                    <div className="flex items-center gap-4 text-lg font-black text-slate-900 dark:text-cream-50 tracking-tight">
+                        <div className="w-10 h-10 bg-cream-100/10 rounded-2xl flex items-center justify-center border border-cream-100/10 shadow-sm">
                             <Smartphone className="w-5 h-5 text-cream-100" />
                         </div>
                         <h2>Aplicativo</h2>
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-dark-950 p-6 rounded-3xl border border-transparent dark:border-dark-800">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div className="bg-slate-50 dark:bg-dark-950 p-8 rounded-[2rem] border border-transparent dark:border-dark-800 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-cream-100/5 rounded-full -mr-16 -mt-16 blur-2xl transition-all group-hover:bg-cream-100/10" />
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
                             <div className="flex-1">
-                                <h3 className="font-bold text-slate-900 dark:text-cream-50 mb-1">Versão Web App (PWA)</h3>
-                                <p className="text-sm text-slate-500 dark:text-cream-200/40">
+                                <h3 className="font-black text-slate-900 dark:text-cream-50 mb-1 tracking-tight">Progessive Web App</h3>
+                                <p className="text-sm font-medium text-slate-500 dark:text-cream-200/40 leading-relaxed">
                                     {isInstalled
                                         ? 'O BookMind já está instalado em seu dispositivo como um aplicativo nativo.'
-                                        : 'Instale o BookMind no seu celular ou desktop para ter acesso rápido e uma experiência mais fluida.'}
+                                        : 'Acesse o BookMind offline e com desempenho otimizado instalando-o como aplicativo.'}
                                 </p>
                             </div>
 
                             {!isInstalled && (
                                 <button
                                     onClick={handleInstallClick}
-                                    className="flex items-center justify-center gap-2 px-6 py-3 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-black/20"
+                                    className="flex items-center justify-center gap-3 px-8 py-4 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-black/20 transform active:scale-95"
                                 >
-                                    <Download className="w-4 h-4" />
+                                    <Download className="w-5 h-5" />
                                     Instalar Agora
                                 </button>
                             )}
 
                             {isInstalled && (
-                                <div className="px-4 py-2 bg-emerald-500/10 text-emerald-500 rounded-xl text-xs font-black uppercase tracking-widest border border-emerald-500/20">
+                                <div className="px-6 py-3 bg-emerald-500/10 text-emerald-500 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-emerald-500/20 shadow-sm">
                                     Já Instalado
                                 </div>
                             )}
@@ -294,17 +328,30 @@ export default function Settings() {
                     </div>
                 </section>
 
-                <div className="pt-4">
+                <div className="pt-6">
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition-all shadow-2xl shadow-black/30 font-black text-xs uppercase tracking-[0.2em] transform active:scale-95 disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-4 px-10 py-5 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition-all shadow-2xl shadow-black/40 font-black text-xs uppercase tracking-[0.25em] transform active:scale-[0.98] disabled:opacity-50"
                     >
                         <Save className="w-5 h-5 mb-0.5" />
-                        {saving ? 'Salvando...' : 'Salvar Configurações'}
+                        {saving ? 'Salvando...' : 'Salvar Preferências'}
                     </button>
                 </div>
             </div>
+
+            {notification && (
+                <ConfirmDialog
+                    isOpen={showNotification}
+                    title={notification.title}
+                    message={notification.message}
+                    onConfirm={() => setShowNotification(false)}
+                    onCancel={() => setShowNotification(false)}
+                    confirmLabel="Entendido"
+                    showCancel={false}
+                    type={notification.type}
+                />
+            )}
         </div>
     );
 }
