@@ -93,8 +93,9 @@ export default function Dashboard() {
       });
   }, [activeBookIndex, currentBooks]);
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (silent = false) => {
     if (!user) return;
+    if (!silent) setLoading(true);
 
     const [booksData, sessionsData, goalsData] = await Promise.all([
       (supabase.from('books') as any)
@@ -129,7 +130,12 @@ export default function Dashboard() {
         (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
       );
       setCurrentBooks(sorted);
-      setActiveBookIndex(0);
+      
+      // Goal 2: Ensure selected book is updated for the modal
+      if (selectedBook) {
+        const updated = books.find(b => b.id === selectedBook.id);
+        if (updated) setSelectedBook(updated);
+      }
 
       setStats((prev) => ({
         ...prev,
@@ -360,6 +366,10 @@ export default function Dashboard() {
       glow: 'bg-slate-500/10 border-slate-500/20',
     },
   ];
+
+  const handleBookUpdated = () => {
+    loadDashboardData(true); // Silent refresh
+  };
 
   // ── Derived values & handlers (all before early return) ───────────────────
   const currentBook = currentBooks[activeBookIndex] ?? null;
@@ -831,9 +841,9 @@ export default function Dashboard() {
           onClose={() => {
             setShowDetailModal(false);
             setSelectedBook(null);
-            loadDashboardData();
+            loadDashboardData(true);
           }}
-          onBookUpdated={loadDashboardData}
+          onBookUpdated={handleBookUpdated}
           onEdit={() => {
             setShowDetailModal(false);
             setShowEditModal(true);
@@ -847,7 +857,7 @@ export default function Dashboard() {
           onClose={() => {
             setShowEditModal(false);
             setSelectedBook(null);
-            loadDashboardData();
+            loadDashboardData(true);
           }}
         />
       )}

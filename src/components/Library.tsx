@@ -39,9 +39,9 @@ export default function Library() {
     }
   }, [user]);
 
-  const loadData = async () => {
+  const loadData = async (silent = false) => {
     if (!user) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
 
     const [booksRes, genresRes] = await Promise.all([
       supabase
@@ -56,6 +56,12 @@ export default function Library() {
       const allBooks = booksRes.data as unknown as Book[];
       setBooks(allBooks);
       
+      // Update selected book if it exists to reflect changes in the modal (Goal #2)
+      if (selectedBook) {
+        const updated = allBooks.find(b => b.id === selectedBook.id);
+        if (updated) setSelectedBook(updated);
+      }
+
       // Update selected shelf if we are in category-books view
       if (viewMode === 'category-books' && selectedShelf) {
         const updatedShelfBooks = allBooks.filter(b => 
@@ -152,12 +158,16 @@ export default function Library() {
   const handleModalClose = () => {
     setShowModal(false);
     setSelectedBook(null);
-    loadData();
+    loadData(true);
   };
 
   const handleDetailModalClose = () => {
     setShowDetailModal(false);
     setSelectedBook(null);
+  };
+
+  const handleBookUpdated = () => {
+    loadData(true); // Silent refresh
   };
 
   const getStatusCounts = (shelfBooks: Book[]) => {
@@ -620,7 +630,7 @@ export default function Library() {
         <BookDetailModal
           book={selectedBook}
           onClose={handleDetailModalClose}
-          onBookUpdated={loadData}
+          onBookUpdated={handleBookUpdated}
           onEdit={() => {
             setShowDetailModal(false);
             setShowModal(true);
