@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   BookOpen, TrendingUp, Target, Award, BookMarked,
-  Clock, Flame, Star, Trophy, BarChart2, ChevronLeft, ChevronRight,
+  Flame, Trophy, BarChart2, ChevronLeft, ChevronRight,
   PauseCircle
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { booksService } from '../services/booksService';
+import { sessionsService, ReadingSession, Goal } from '../services/sessionsService';
 import { useAuth } from '../contexts/AuthContext';
 import { getLocalDateISO } from '../lib/dateUtils';
 import BookDetailModal from './BookDetailModal';
@@ -23,16 +24,7 @@ interface DashboardStats {
   totalPagesRead: number;
 }
 
-interface ReadingSession {
-  session_date: string;
-  pages_read: number;
-}
-
-interface Goal {
-  id: string;
-  goal_type: string;
-  target_value: number;
-}
+// Interfaces moved to sessionsService.ts
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -97,97 +89,90 @@ export default function Dashboard() {
     if (!user) return;
     if (!silent) setLoading(true);
 
-    const [booksData, sessionsData, goalsData] = await Promise.all([
-      (supabase.from('books') as any)
-        .select('*, genres(name, color)')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false }),
-      (supabase.from('reading_sessions') as any)
-        .select('*')
-        .eq('user_id', user.id)
-        .order('session_date', { ascending: false }),
-      (supabase.from('reading_goals') as any)
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true),
-    ]);
+    try {
+      const [books, sessions, goals] = await Promise.all([
+        booksService.getRecentBooksByUserId(user.id),
+        sessionsService.getSessionsByUserId(user.id),
+        sessionsService.getActiveGoalsByUserId(user.id)
+      ]);
 
-    if (booksData.data) {
-      const books: Book[] = booksData.data as unknown as Book[];
-      const total = books.length;
-      const inProgressBooks = books.filter((b) => b.status === 'in_progress');
-      const completedCount = books.filter((b) => b.status === 'completed').length;
-      const pausedCount = books.filter((b) => b.status === 'paused').length;
-      const wantToReadCount = books.filter((b) => b.status === 'want_to_read').length;
+      if (books) {
+        const total = books.length;
+        const inProgressBooks = books.filter((b) => b.status === 'in_progress');
+        const completedCount = books.filter((b) => b.status === 'completed').length;
+        const pausedCount = books.filter((b) => b.status === 'paused').length;
+        const wantToReadCount = books.filter((b) => b.status === 'want_to_read').length;
 
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const thisMonth = books.filter(
-        (b) => b.completed_at && new Date(b.completed_at) >= startOfMonth
-      ).length;
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const thisMonth = books.filter(
+          (b) => b.completed_at && new Date(b.completed_at) >= startOfMonth
+        ).length;
 
-      const sorted = [...inProgressBooks].sort(
-        (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-      );
-      setCurrentBooks(sorted);
-      
-      // Goal 2: Ensure selected book is updated for the modal
-      if (selectedBook) {
-        const updated = books.find(b => b.id === selectedBook.id);
-        if (updated) setSelectedBook(updated);
+        const sorted = [...inProgressBooks].sort(
+          (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        );
+        setCurrentBooks(sorted);
+        
+        // Goal 2: Ensure selected book is updated for the modal
+        if (selectedBook) {
+          const updated = books.find(b => b.id === selectedBook.id);
+          if (updated) setSelectedBook(updated);
+        }
+
+        setStats((prev) => ({
+          ...prev,
+          totalBooks: total,
+          booksInProgress: inProgressBooks.length,
+          booksCompleted: completedCount,
+          booksPaused: pausedCount,
+          booksWantToRead: wantToReadCount,
+          thisMonthBooks: thisMonth,
+        }));
+
+        const heroIds = new Set(sorted.map((b) => b.id));
+        setRecentBooks(books.filter((b) => !heroIds.has(b.id)).slice(0, 6));
       }
 
-      setStats((prev) => ({
-        ...prev,
-        totalBooks: total,
-        booksInProgress: inProgressBooks.length,
-        booksCompleted: completedCount,
-        booksPaused: pausedCount,
-        booksWantToRead: wantToReadCount,
-        thisMonthBooks: thisMonth,
-      }));
+      if (sessions) {
+        const today = getLocalDateISO();
 
-      const heroIds = new Set(sorted.map((b) => b.id));
-      setRecentBooks(books.filter((b) => !heroIds.has(b.id)).slice(0, 6));
-    }
-
-    if (sessionsData.data) {
-      const sessions: ReadingSession[] = sessionsData.data;
-      const today = getLocalDateISO();
-
-      const todayPages = sessions
-        .filter((s) => s.session_date === today)
-        .reduce((sum, s) => sum + (s.pages_read || 0), 0);
-
-      const totalPagesRead = sessions.reduce((sum, s) => sum + (s.pages_read || 0), 0);
-      const streak = calculateStreak(sessions);
-
-      // Últimos 7 dias
-      const days: { date: string; pages: number }[] = [];
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const dateStr = getLocalDateISO(d);
-        const pages = sessions
-          .filter((s) => s.session_date === dateStr)
+        const todayPages = sessions
+          .filter((s) => s.session_date === today)
           .reduce((sum, s) => sum + (s.pages_read || 0), 0);
-        days.push({ date: dateStr, pages });
+
+        const totalPagesRead = sessions.reduce((sum, s) => sum + (s.pages_read || 0), 0);
+        const streak = calculateStreak(sessions as any);
+
+        // Últimos 7 dias
+        const days: { date: string; pages: number }[] = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const dateStr = getLocalDateISO(d);
+          const pages = sessions
+            .filter((s) => s.session_date === dateStr)
+            .reduce((sum, s) => sum + (s.pages_read || 0), 0);
+          days.push({ date: dateStr, pages });
+        }
+        setLast7Days(days);
+
+        setStats((prev) => ({
+          ...prev,
+          pagesReadToday: todayPages,
+          currentStreak: streak,
+          totalPagesRead,
+        }));
       }
-      setLast7Days(days);
 
-      setStats((prev) => ({
-        ...prev,
-        pagesReadToday: todayPages,
-        currentStreak: streak,
-        totalPagesRead,
-      }));
+      if (goals) {
+        setActiveGoals(goals as any);
+      }
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
     }
-
-    if (goalsData.data) {
-      setActiveGoals(goalsData.data);
-    }
-
-    setLoading(false);
   };
 
   // ── Helpers de extração de cor ────────────────────────────────────────────
