@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Calendar as CalendarIcon, BookOpen, TrendingUp } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { Calendar as CalendarIcon, BookOpen, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { getLocalDateISO } from '../lib/dateUtils';
@@ -11,13 +11,7 @@ export default function Calendar() {
   const [heatmapData, setHeatmapData] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadSessions();
-    }
-  }, [user, currentMonth]);
-
-  const loadSessions = async () => {
+  const loadSessions = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
@@ -53,7 +47,13 @@ export default function Calendar() {
     }
 
     setLoading(false);
-  };
+  }, [user, currentMonth]);
+
+  useEffect(() => {
+    if (user) {
+      loadSessions();
+    }
+  }, [user, currentMonth, loadSessions]);
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -78,7 +78,7 @@ export default function Calendar() {
   const days = [];
 
   for (let i = 0; i < startingDayOfWeek; i++) {
-    days.push(<div key={`empty-${i}`} className="aspect-square" />);
+    days.push(<div key={`empty-${i}`} className="aspect-square" aria-hidden="true" />);
   }
 
   for (let day = 1; day <= daysInMonth; day++) {
@@ -91,7 +91,8 @@ export default function Calendar() {
       <div
         key={day}
         className={`aspect-square rounded-xl ${intensity} flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-emerald-500 transition shadow-sm`}
-        title={dayData ? `${dayData.pages} páginas lidas` : 'Sem leituras'}
+        aria-label={`${day} de ${currentMonth.toLocaleDateString('pt-BR', { month: 'long' })}: ${dayData ? `${dayData.pages} páginas lidas` : 'Nenhuma leitura'}`}
+        role="gridcell"
       >
         <span className={`text-[11px] font-black ${dayData?.pages >= 25 ? 'text-white' : 'text-slate-700 dark:text-cream-100'}`}>{day}</span>
       </div>
@@ -135,7 +136,7 @@ export default function Calendar() {
           <div className="absolute top-0 right-0 w-24 h-24 bg-cream-100/5 rounded-full -mr-12 -mt-12 blur-2xl transition-all group-hover:bg-cream-100/10" />
           <div className="flex items-center gap-4 relative z-10">
             <div className="bg-cream-100/10 p-3.5 rounded-2xl border border-cream-100/10">
-              <CalendarIcon className="w-6 h-6 text-cream-100" />
+              <CalendarIcon className="w-6 h-6 text-cream-100" aria-hidden="true" />
             </div>
             <div>
               <p className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500 dark:text-cream-200/20 mb-1">Sessões este Mês</p>
@@ -148,7 +149,7 @@ export default function Calendar() {
           <div className="absolute top-0 right-0 w-24 h-24 bg-cream-100/5 rounded-full -mr-12 -mt-12 blur-2xl transition-all group-hover:bg-cream-100/10" />
           <div className="flex items-center gap-4 relative z-10">
             <div className="bg-cream-100/10 p-3.5 rounded-2xl border border-cream-100/10">
-              <BookOpen className="w-6 h-6 text-cream-100" />
+              <BookOpen className="w-6 h-6 text-cream-100" aria-hidden="true" />
             </div>
             <div>
               <p className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500 dark:text-cream-200/20 mb-1">Páginas este Mês</p>
@@ -161,7 +162,7 @@ export default function Calendar() {
           <div className="absolute top-0 right-0 w-24 h-24 bg-cream-100/5 rounded-full -mr-12 -mt-12 blur-2xl transition-all group-hover:bg-cream-100/10" />
           <div className="flex items-center gap-4 relative z-10">
             <div className="bg-cream-100/10 p-3.5 rounded-2xl border border-cream-100/10">
-              <TrendingUp className="w-6 h-6 text-cream-100" />
+              <TrendingUp className="w-6 h-6 text-cream-100" aria-hidden="true" />
             </div>
             <div>
               <p className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500 dark:text-cream-200/20 mb-1">Média por Sessão</p>
@@ -172,50 +173,52 @@ export default function Calendar() {
       </div>
 
       <div className="bg-white dark:bg-dark-900 rounded-[2rem] shadow-sm border border-slate-200 dark:border-dark-800 p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white capitalize">{monthName}</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+          <h2 className="text-xl font-black text-slate-900 dark:text-white capitalize tracking-tight">{monthName}</h2>
           <div className="flex gap-2 justify-center sm:justify-end">
             <button
               onClick={() => changeMonth(-1)}
-              className="px-4 py-2 bg-slate-100 dark:bg-dark-800 hover:bg-slate-200 dark:hover:bg-dark-700 rounded-xl transition text-slate-600 dark:text-cream-200/40"
+              className="p-3 bg-slate-50 dark:bg-dark-800 hover:bg-slate-100 dark:hover:bg-dark-700 border border-slate-100 dark:border-dark-700 rounded-2xl transition-all text-slate-600 dark:text-cream-200/40"
+              aria-label="Mês anterior"
             >
-              ←
+              <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={() => setCurrentMonth(new Date())}
-              className="px-4 py-2 bg-slate-100 dark:bg-dark-800 hover:bg-slate-200 dark:hover:bg-dark-700 rounded-xl transition text-slate-600 dark:text-cream-200/40"
+              className="px-6 py-2 bg-slate-50 dark:bg-dark-800 hover:bg-slate-100 dark:hover:bg-dark-700 border border-slate-100 dark:border-dark-700 rounded-2xl transition-all text-[10px] uppercase font-black tracking-widest text-slate-600 dark:text-cream-200/40"
             >
               Hoje
             </button>
             <button
               onClick={() => changeMonth(1)}
-              className="px-4 py-2 bg-slate-100 dark:bg-dark-800 hover:bg-slate-200 dark:hover:bg-dark-700 rounded-xl transition text-slate-600 dark:text-cream-200/40"
+              className="p-3 bg-slate-50 dark:bg-dark-800 hover:bg-slate-100 dark:hover:bg-dark-700 border border-slate-100 dark:border-dark-700 rounded-2xl transition-all text-slate-600 dark:text-cream-200/40"
+              aria-label="Próximo mês"
             >
-              →
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-3 mb-4">
+        <div className="grid grid-cols-7 gap-3 mb-4" role="row">
           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day) => (
-            <div key={day} className="text-center text-[10px] uppercase font-black tracking-widest text-slate-400 dark:text-cream-200/20">
+            <div key={day} className="text-center text-[10px] uppercase font-black tracking-widest text-slate-400 dark:text-cream-200/20" role="columnheader">
               {day}
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-2">{days}</div>
+        <div className="grid grid-cols-7 gap-2" role="grid">{days}</div>
 
-        <div className="flex items-center gap-4 mt-6 text-sm">
-          <span className="text-slate-600 dark:text-cream-200/40 font-bold uppercase tracking-widest text-[10px]">Menos</span>
-          <div className="flex gap-1.5 px-3 py-2 bg-slate-50 dark:bg-dark-800/30 rounded-xl border border-transparent dark:border-dark-800">
-            <div className="w-4 h-4 bg-slate-100 dark:bg-dark-800/50 rounded" />
-            <div className="w-4 h-4 bg-emerald-500/20 rounded" />
-            <div className="w-4 h-4 bg-emerald-500/40 rounded" />
-            <div className="w-4 h-4 bg-emerald-500/70 rounded" />
-            <div className="w-4 h-4 bg-emerald-500 rounded" />
+        <div className="flex items-center gap-4 mt-8 text-sm">
+          <span className="text-slate-600 dark:text-cream-200/40 font-black uppercase tracking-widest text-[10px]">Menos</span>
+          <div className="flex gap-2 px-4 py-2.5 bg-slate-50/50 dark:bg-dark-950/50 rounded-2xl border border-slate-100 dark:border-dark-800/50">
+            <div className="w-4 h-4 bg-slate-100 dark:bg-dark-800/50 rounded-lg" title="Zero" />
+            <div className="w-4 h-4 bg-emerald-500/20 rounded-lg" title="1-10 páginas" />
+            <div className="w-4 h-4 bg-emerald-500/40 rounded-lg" title="11-25 páginas" />
+            <div className="w-4 h-4 bg-emerald-500/70 rounded-lg" title="26-50 páginas" />
+            <div className="w-4 h-4 bg-emerald-500 rounded-lg" title="51+ páginas" />
           </div>
-          <span className="text-slate-600 dark:text-cream-200/40 font-bold uppercase tracking-widest text-[10px]">Mais</span>
+          <span className="text-slate-600 dark:text-cream-200/40 font-black uppercase tracking-widest text-[10px]">Mais</span>
         </div>
       </div>
 
@@ -223,24 +226,24 @@ export default function Calendar() {
         <div className="p-8 border-b border-slate-200 dark:border-dark-800">
           <h2 className="text-xl font-black text-slate-900 dark:text-cream-50 tracking-tight">Sessões Recentes</h2>
         </div>
-        <div className="p-6">
+        <div className="p-8">
           {thisMonthSessions.length === 0 ? (
-            <div className="text-center py-8">
-              <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-              <p className="text-slate-600 dark:text-slate-400">Nenhuma sessão registrada este mês</p>
+            <div className="text-center py-16 bg-slate-50/50 dark:bg-dark-950/50 rounded-[2rem] border border-dashed border-slate-200 dark:border-dark-800">
+              <BookOpen className="w-12 h-12 text-slate-300 dark:text-cream-200/10 mx-auto mb-4" aria-hidden="true" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-cream-200/20">Nenhuma sessão registrada este mês</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {thisMonthSessions.slice(0, 10).map((session) => (
-                <div key={session.id} className="flex items-center justify-between p-6 bg-slate-50 dark:bg-dark-800/50 rounded-3xl border border-transparent dark:border-dark-800 hover:border-dark-700 transition-all duration-300 group">
+                <div key={session.id} className="flex items-center justify-between p-6 bg-slate-50/50 dark:bg-dark-950/50 rounded-[2rem] border border-transparent dark:border-dark-800 hover:border-dark-700 transition-all duration-300 group">
                   <div className="flex-1">
-                    <p className="font-black text-slate-900 dark:text-cream-100">{session.books.title}</p>
-                    <p className="text-[10px] uppercase font-bold text-slate-500 dark:text-cream-200/20 mt-2 tracking-widest">
+                    <p className="font-black text-slate-900 dark:text-cream-100 tracking-tight">{session.books.title}</p>
+                    <p className="text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 mt-2 tracking-[0.15em]">
                       {session.pages_read} páginas • {session.duration_minutes} min
                     </p>
                   </div>
-                  <div className="text-[10px] uppercase font-black text-slate-400 dark:text-cream-200/20 tracking-tighter">
-                    {new Date(session.session_date).toLocaleDateString('pt-BR')}
+                  <div className="text-[10px] uppercase font-black text-slate-400 dark:text-cream-200/10 tracking-widest px-3 py-1 bg-white dark:bg-dark-800 rounded-lg shadow-sm">
+                    {new Date(session.session_date + 'T12:00:00').toLocaleDateString('pt-BR')}
                   </div>
                 </div>
               ))}

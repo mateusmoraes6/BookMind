@@ -25,6 +25,13 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
 
   useEffect(() => {
     loadBookData();
+
+    // Accessibility: ESC to close
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
   }, [book.id]);
 
   const loadBookData = async () => {
@@ -96,11 +103,16 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
   const StatusIcon = statusMeta.icon;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-dark-800 relative animate-in fade-in zoom-in duration-300">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+      <div 
+        className="bg-white dark:bg-dark-900 rounded-[2.5rem] max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-dark-800 relative animate-in fade-in zoom-in duration-300"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="detail-title"
+      >
         <div className="sticky top-0 bg-white/80 dark:bg-dark-900/80 backdrop-blur-md border-b border-slate-200 dark:border-dark-800 p-8 flex items-center justify-between z-20">
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-cream-50 tracking-tight">Detalhes do Livro</h2>
+            <h2 id="detail-title" className="text-2xl font-black text-slate-900 dark:text-cream-50 tracking-tight">Detalhes do Livro</h2>
             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${statusMeta.bgClass} ${statusMeta.textClass} border ${statusMeta.borderClass}`}>
               <StatusIcon className="w-3.5 h-3.5" />
               {statusMeta.label}
@@ -134,7 +146,7 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
               />
             ) : (
               <div className="w-48 h-72 bg-slate-100 dark:bg-dark-950 rounded-2xl flex items-center justify-center mx-auto md:mx-0 border-4 border-dashed border-slate-200 dark:border-dark-800">
-                <BookOpen className="w-16 h-16 text-slate-200 dark:text-dark-800" />
+                < BookOpen className="w-16 h-16 text-slate-200 dark:text-dark-800" />
               </div>
             )}
 

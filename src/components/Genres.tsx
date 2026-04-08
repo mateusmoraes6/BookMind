@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Plus, Tag, Edit2, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { Plus, Tag, Edit2, Trash2, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -30,13 +30,7 @@ export default function Genres() {
   const [subcategoryForm, setSubcategoryForm] = useState({ name: '', genre_id: '' });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
@@ -50,7 +44,26 @@ export default function Genres() {
     if (subcategoriesData.data) setSubcategories(subcategoriesData.data);
 
     setLoading(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, loadData]);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowGenreModal(false);
+        setShowSubcategoryModal(false);
+        setSelectedGenre(null);
+        setSelectedSubcategory(null);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
 
   const toggleGenre = (genreId: string) => {
     const newExpanded = new Set(expandedGenres);
@@ -157,6 +170,7 @@ export default function Genres() {
         <button
           onClick={() => setShowGenreModal(true)}
           className="flex items-center justify-center gap-3 px-8 py-4 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-[1.25rem] transition-all shadow-xl shadow-black/20 font-black text-xs uppercase tracking-widest transform active:scale-95 w-full sm:w-auto"
+          aria-label="Criar Novo Gênero"
         >
           <Plus className="w-5 h-5 mb-0.5" />
           Novo Gênero
@@ -176,6 +190,8 @@ export default function Genres() {
                   <button
                     onClick={() => toggleGenre(genre.id)}
                     className="p-2 hover:bg-slate-100 dark:hover:bg-dark-800 rounded-xl transition-all"
+                    aria-expanded={isExpanded}
+                    aria-label={`${isExpanded ? 'Recolher' : 'Expandir'} subcategorias de ${genre.name}`}
                   >
                     {isExpanded ? (
                       <ChevronDown className="w-5 h-5 text-slate-400 dark:text-cream-200/20" />
@@ -187,7 +203,7 @@ export default function Genres() {
                     className="w-12 h-12 rounded-2xl flex items-center justify-center border border-current shadow-sm"
                     style={{ backgroundColor: `${genre.color}15`, color: genre.color }}
                   >
-                    <Tag className="w-6 h-6" />
+                    <Tag className="w-6 h-6" aria-hidden="true" />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-black text-slate-900 dark:text-cream-100 tracking-tight">{genre.name}</h3>
@@ -196,18 +212,18 @@ export default function Genres() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 relative z-10">
                   <button
                     onClick={() => openAddSubcategory(genre.id)}
                     className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition text-slate-600 dark:text-slate-400"
-                    title="Adicionar subcategoria"
+                    aria-label={`Adicionar subcategoria em ${genre.name}`}
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => openEditGenre(genre)}
                     className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition text-slate-600 dark:text-slate-400"
-                    title="Editar"
+                    aria-label={`Editar gênero ${genre.name}`}
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
@@ -215,7 +231,7 @@ export default function Genres() {
                     <button
                       onClick={() => handleDeleteGenre(genre.id)}
                       className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition text-red-600 dark:text-red-400"
-                      title="Excluir"
+                      aria-label={`Excluir gênero ${genre.name}`}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -236,14 +252,14 @@ export default function Genres() {
                           <button
                             onClick={() => openEditSubcategory(subcategory)}
                             className="p-2 hover:bg-slate-100 dark:hover:bg-dark-800 rounded-lg transition-all text-slate-400 dark:text-cream-200/20"
-                            title="Editar"
+                            aria-label={`Editar subcategoria ${subcategory.name}`}
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDeleteSubcategory(subcategory.id)}
                             className="p-2 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all text-red-400/30 hover:text-red-400"
-                            title="Excluir"
+                            aria-label={`Excluir subcategoria ${subcategory.name}`}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -260,16 +276,29 @@ export default function Genres() {
 
       {showGenreModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] max-w-md w-full border border-slate-200 dark:border-dark-800 shadow-2xl animate-in fade-in zoom-in duration-300">
+          <div 
+            className="bg-white dark:bg-dark-900 rounded-[2.5rem] max-w-md w-full border border-slate-200 dark:border-dark-800 shadow-2xl animate-in fade-in zoom-in duration-300 relative"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="genre-modal-title"
+          >
+            <button
+                onClick={() => { setShowGenreModal(false); setSelectedGenre(null); }}
+                className="absolute top-6 right-6 p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-800 rounded-xl transition-all"
+                aria-label="Fechar"
+            >
+                <X className="w-5 h-5" />
+            </button>
             <div className="p-8 border-b border-slate-100 dark:border-dark-800">
-              <h2 className="text-2xl font-black text-slate-900 dark:text-cream-50 tracking-tight">
+              <h2 id="genre-modal-title" className="text-2xl font-black text-slate-900 dark:text-cream-50 tracking-tight">
                 {selectedGenre ? 'Editar Gênero' : 'Novo Gênero'}
               </h2>
             </div>
             <form onSubmit={handleSaveGenre} className="p-8 space-y-6">
               <div>
-                <label className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3">Nome *</label>
+                <label htmlFor="genre-name" className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3">Nome *</label>
                 <input
+                  id="genre-name"
                   type="text"
                   value={genreForm.name}
                   onChange={(e) => setGenreForm({ ...genreForm, name: e.target.value })}
@@ -278,8 +307,9 @@ export default function Genres() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3">Cor</label>
+                <label htmlFor="genre-color" className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3">Cor</label>
                 <input
+                  id="genre-color"
                   type="color"
                   value={genreForm.color}
                   onChange={(e) => setGenreForm({ ...genreForm, color: e.target.value })}
@@ -312,25 +342,38 @@ export default function Genres() {
 
       {showSubcategoryModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] max-w-md w-full border border-slate-200 dark:border-dark-800 shadow-2xl animate-in fade-in zoom-in duration-300">
+          <div 
+            className="bg-white dark:bg-dark-900 rounded-[2.5rem] max-w-md w-full border border-slate-200 dark:border-dark-800 shadow-2xl animate-in fade-in zoom-in duration-300 relative"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sub-modal-title"
+          >
+            <button
+                onClick={() => { setShowSubcategoryModal(false); setSelectedSubcategory(null); }}
+                className="absolute top-6 right-6 p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-800 rounded-xl transition-all"
+                aria-label="Fechar"
+            >
+                <X className="w-5 h-5" />
+            </button>
             <div className="p-8 border-b border-slate-100 dark:border-dark-800">
-              <h2 className="text-2xl font-black text-slate-900 dark:text-cream-50 tracking-tight">
+              <h2 id="sub-modal-title" className="text-2xl font-black text-slate-900 dark:text-cream-50 tracking-tight">
                 {selectedSubcategory ? 'Editar Subcategoria' : 'Nova Subcategoria'}
               </h2>
             </div>
-            <form onSubmit={handleSaveSubcategory} className="p-6 space-y-4">
+            <form onSubmit={handleSaveSubcategory} className="p-8 space-y-6">
               {!selectedSubcategory && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Gênero *</label>
+                  <label htmlFor="sub-genre" className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3">Gênero *</label>
                   <select
+                    id="sub-genre"
                     value={subcategoryForm.genre_id}
                     onChange={(e) => setSubcategoryForm({ ...subcategoryForm, genre_id: e.target.value })}
-                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
+                    className="w-full px-5 py-4 bg-slate-50 dark:bg-dark-950 border border-slate-200 dark:border-dark-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black transition-all cursor-pointer"
                     required
                   >
-                    <option value="">Selecione um gênero</option>
+                    <option value="" className="bg-dark-900">Selecione um gênero</option>
                     {genres.map((genre) => (
-                      <option key={genre.id} value={genre.id}>
+                      <option key={genre.id} value={genre.id} className="bg-dark-900">
                         {genre.name}
                       </option>
                     ))}
@@ -338,16 +381,17 @@ export default function Genres() {
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Nome *</label>
+                <label htmlFor="sub-name" className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3">Nome *</label>
                 <input
+                  id="sub-name"
                   type="text"
                   value={subcategoryForm.name}
                   onChange={(e) => setSubcategoryForm({ ...subcategoryForm, name: e.target.value })}
-                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-indigo-500 dark:text-white"
+                  className="w-full px-5 py-4 bg-slate-50 dark:bg-dark-950 border border-slate-200 dark:border-dark-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black text-lg transition-all"
                   required
                 />
               </div>
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-4 pt-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -355,13 +399,13 @@ export default function Genres() {
                     setSelectedSubcategory(null);
                     setSubcategoryForm({ name: '', genre_id: '' });
                   }}
-                  className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                  className="flex-1 px-6 py-4 bg-slate-50 dark:bg-dark-800 border border-slate-200 dark:border-dark-700 text-slate-600 dark:text-cream-200/40 rounded-2xl hover:bg-slate-100 dark:hover:bg-dark-700 transition-all font-black text-xs uppercase tracking-widest"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-700 transition"
+                  className="flex-1 px-6 py-4 bg-cream-100 text-dark-950 rounded-2xl hover:bg-cream-50 transition-all font-black text-xs uppercase tracking-widest shadow-xl shadow-black/20"
                 >
                   {selectedSubcategory ? 'Salvar' : 'Criar'}
                 </button>

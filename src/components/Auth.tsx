@@ -95,10 +95,11 @@ export default function Auth() {
           <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
             {isSignUp && (
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-cream-200/60 uppercase tracking-widest px-1">
+                <label htmlFor="fullName" className="block text-xs font-bold text-cream-200/60 uppercase tracking-widest px-1">
                   Nome
                 </label>
                 <input
+                  id="fullName"
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -106,15 +107,17 @@ export default function Auth() {
                   placeholder="Seu nome"
                   required
                   disabled={loading}
+                  autoComplete="name"
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-cream-200/60 uppercase tracking-widest px-1">
+              <label htmlFor="email" className="block text-xs font-bold text-cream-200/60 uppercase tracking-widest px-1">
                 Email
               </label>
               <input
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -122,14 +125,16 @@ export default function Auth() {
                 placeholder="seu@email.com"
                 required
                 disabled={loading}
+                autoComplete="email"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-cream-200/60 uppercase tracking-widest px-1">
+              <label htmlFor="password" className="block text-xs font-bold text-cream-200/60 uppercase tracking-widest px-1">
                 Senha
               </label>
               <input
+                id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -138,6 +143,7 @@ export default function Auth() {
                 required
                 minLength={6}
                 disabled={loading}
+                autoComplete={isSignUp ? "new-password" : "current-password"}
               />
               {isSignUp && (
                 <p className="text-[10px] text-dark-700 font-bold uppercase tracking-wide px-1">
@@ -146,18 +152,20 @@ export default function Auth() {
               )}
             </div>
 
-            {error && (
-              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
-                <p className="text-sm font-medium text-red-400 text-center">{error}</p>
-              </div>
-            )}
+            <div aria-live="polite">
+              {error && (
+                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl mb-5">
+                  <p className="text-sm font-medium text-red-400 text-center">{error}</p>
+                </div>
+              )}
 
-            {success && (
-              <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-2xl flex items-center justify-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
-                <p className="text-sm font-medium text-green-400">{success}</p>
-              </div>
-            )}
+              {success && (
+                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-2xl flex items-center justify-center gap-3 mb-5">
+                  <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                  <p className="text-sm font-medium text-green-400">{success}</p>
+                </div>
+              )}
+            </div>
 
             <button
               type="submit"

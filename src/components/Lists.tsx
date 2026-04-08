@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Plus, List, Edit2, Trash2, BookOpen } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { Plus, List, Edit2, Trash2, BookOpen, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -26,13 +26,7 @@ export default function Lists() {
     color: '#8b5cf6',
   });
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
@@ -58,7 +52,25 @@ export default function Lists() {
     }
 
     setLoading(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, loadData]);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowModal(false);
+        setShowAddBooksModal(false);
+        setSelectedList(null);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,14 +155,15 @@ export default function Lists() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white">Listas Personalizadas</h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">Organize seus livros em coleções customizadas</p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white leading-tight tracking-tight">Listas Personalizadas</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-2 font-medium">Organize seus livros em coleções customizadas</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center justify-center gap-2 px-4 py-3 bg-cream-100 text-dark-950 rounded-lg hover:bg-cream-50 transition w-full sm:w-auto"
+          className="flex items-center justify-center gap-2 px-6 py-4 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-[1.25rem] transition-all shadow-xl shadow-black/20 font-black text-xs uppercase tracking-widest transform active:scale-95 w-full sm:w-auto"
+          aria-label="Criar Nova Lista"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-5 h-5 mb-0.5" />
           Nova Lista
         </button>
       </div>
@@ -159,7 +172,7 @@ export default function Lists() {
         <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-dark-800 p-16 text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 w-48 h-48 bg-cream-100/5 rounded-full -mr-24 -mt-24 blur-3xl" />
           <div className="relative z-10 w-20 h-20 bg-cream-100/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6 border border-cream-100/10">
-            <List className="w-10 h-10 text-cream-100" />
+            <List className="w-10 h-10 text-cream-100" aria-hidden="true" />
           </div>
           <h3 className="text-2xl font-black text-slate-900 dark:text-cream-50 mb-3 tracking-tight">Nenhuma lista criada</h3>
           <p className="text-slate-500 dark:text-cream-200/40 mb-10 max-w-sm mx-auto font-medium">
@@ -178,85 +191,86 @@ export default function Lists() {
           {lists.map((list) => {
             const booksInList = listBooks[list.id] || [];
             return (
-              <div key={list.id} className="bg-white dark:bg-dark-900 rounded-xl shadow-sm border border-slate-200 dark:border-dark-800">
+              <div key={list.id} className="bg-white dark:bg-dark-900 rounded-[2rem] shadow-sm border border-slate-200 dark:border-dark-800 flex flex-col hover:shadow-xl transition-all duration-500 group">
                 <div className="p-6 border-b border-slate-200 dark:border-dark-800">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-3 flex-1">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-4 flex-1">
                       <div
-                        className="w-12 h-12 rounded-lg flex items-center justify-center"
-                        style={{ backgroundColor: `${list.color}20` }}
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center border border-current shadow-sm"
+                        style={{ backgroundColor: `${list.color}20`, color: list.color }}
                       >
-                        <List className="w-6 h-6" style={{ color: list.color }} />
+                        <List className="w-6 h-6" aria-hidden="true" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-black text-slate-900 dark:text-white">{list.name}</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                        <h3 className="font-black text-slate-900 dark:text-cream-100 tracking-tight">{list.name}</h3>
+                        <p className="text-[10px] uppercase font-black tracking-widest text-slate-500 dark:text-cream-200/40 mt-1">
                           {booksInList.length} livro{booksInList.length !== 1 ? 's' : ''}
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-2 relative z-10">
                       <button
                         onClick={() => handleEdit(list)}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-dark-800 rounded-lg transition"
-                        title="Editar"
+                        className="p-2.5 hover:bg-slate-100 dark:hover:bg-dark-800 rounded-xl transition text-slate-600 dark:text-cream-200/40"
+                        aria-label={`Editar lista ${list.name}`}
                       >
-                        <Edit2 className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                        <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(list.id)}
-                        className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
-                        title="Excluir"
+                        className="p-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition text-red-600 dark:text-red-400"
+                        aria-label={`Excluir lista ${list.name}`}
                       >
-                        <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                   {list.description && (
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">{list.description}</p>
+                    <p className="text-sm font-medium text-slate-600 dark:text-cream-200/60 line-clamp-2">{list.description}</p>
                   )}
                 </div>
 
-                <div className="p-6 space-y-4 flex-1">
+                <div className="p-6 space-y-4 flex-1 flex flex-col">
                   {booksInList.length === 0 ? (
-                    <div className="text-center py-10 bg-slate-50/50 dark:bg-black/20 rounded-[1.5rem] border border-dashed border-slate-200 dark:border-dark-800">
-                      <BookOpen className="w-10 h-10 text-slate-300 dark:text-cream-200/10 mx-auto mb-3" />
-                      <p className="text-xs font-bold text-slate-400 dark:text-cream-200/20 uppercase tracking-widest mb-4">Lista vazia</p>
+                    <div className="flex-1 flex flex-col items-center justify-center py-10 bg-slate-50/50 dark:bg-dark-950/50 rounded-[1.5rem] border border-dashed border-slate-200 dark:border-dark-800">
+                      <BookOpen className="w-10 h-10 text-slate-300 dark:text-cream-200/10 mb-3" aria-hidden="true" />
+                      <p className="text-[10px] font-black font-bold text-slate-400 dark:text-cream-200/20 uppercase tracking-widest mb-4">Lista vazia</p>
                       <button
                         onClick={() => openAddBooks(list)}
                         className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 dark:text-cream-100 hover:text-cream-50 transition-colors"
+                        aria-label="Adicionar livros à lista"
                       >
                         + Adicionar livros
                       </button>
                     </div>
                   ) : (
                     <>
-                      <div className="space-y-3 mb-6">
+                      <div className="space-y-2 mb-4 flex-1">
                         {booksInList.slice(0, 3).map((book: any) => (
                           <div
                             key={book.id}
-                            className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-dark-950/50 rounded-2xl border border-transparent dark:border-dark-800 hover:border-dark-700 transition-all duration-300 group/item"
+                            className="flex items-center gap-3 p-3.5 bg-white dark:bg-dark-950/30 rounded-2xl border border-slate-50 dark:border-dark-800 hover:border-dark-700 transition-all duration-300 group/item"
                           >
-                            <BookOpen className="w-4 h-4 text-slate-400 dark:text-cream-200/20" />
+                            <BookOpen className="w-4 h-4 text-slate-400 dark:text-cream-200/20" aria-hidden="true" />
                             <span className="text-sm font-bold text-slate-700 dark:text-cream-100 truncate flex-1">{book.title}</span>
                             <button
                               onClick={() => handleRemoveBook(list.id, book.id)}
-                              className="p-1 opacity-0 group-hover/item:opacity-100 transition-all transform scale-90 hover:scale-100 text-red-500/40 hover:text-red-500"
-                              title="Remover"
+                              className="p-2 opacity-0 group-hover/item:opacity-100 transition-all text-red-400/30 hover:text-red-400"
+                              aria-label={`Remover ${book.title} da lista`}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ))}
+                        {booksInList.length > 3 && (
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-cream-200/10 text-center py-2">
+                            +{booksInList.length - 3} outros títulos
+                          </p>
+                        )}
                       </div>
-                      {booksInList.length > 3 && (
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-cream-200/10 text-center mb-6">
-                          +{booksInList.length - 3} outros títulos
-                        </p>
-                      )}
                       <button
                         onClick={() => openAddBooks(list)}
-                        className="w-full py-4 px-6 bg-slate-100 dark:bg-dark-800/80 hover:bg-slate-200 dark:hover:bg-dark-700 text-dark-950 dark:text-cream-200/40 hover:dark:text-cream-100 border border-slate-200 dark:border-dark-700 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest"
+                        className="w-full py-4 px-6 bg-slate-100 dark:bg-dark-800/80 hover:bg-slate-200 dark:hover:bg-dark-700 text-dark-950 dark:text-cream-200/40 hover:dark:text-cream-100 border border-slate-200 dark:border-dark-700 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-lg shadow-black/5"
                       >
                         Gerenciar Títulos
                       </button>
@@ -271,16 +285,29 @@ export default function Lists() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] max-w-md w-full border border-slate-200 dark:border-dark-800 shadow-2xl animate-in fade-in zoom-in duration-300">
+          <div 
+            className="bg-white dark:bg-dark-900 rounded-[2.5rem] max-w-md w-full border border-slate-200 dark:border-dark-800 shadow-2xl animate-in fade-in zoom-in duration-300 relative"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="list-modal-title"
+          >
+            <button
+                onClick={() => { setShowModal(false); setSelectedList(null); }}
+                className="absolute top-6 right-6 p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-800 rounded-xl transition-all"
+                aria-label="Fechar"
+            >
+                <X className="w-5 h-5" />
+            </button>
             <div className="p-8 border-b border-slate-100 dark:border-dark-800">
-              <h2 className="text-2xl font-black text-slate-900 dark:text-cream-50 tracking-tight">
+              <h2 id="list-modal-title" className="text-2xl font-black text-slate-900 dark:text-cream-50 tracking-tight">
                 {selectedList ? 'Editar Lista' : 'Nova Lista'}
               </h2>
             </div>
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
               <div>
-                <label className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3">Nome *</label>
+                <label htmlFor="list-name" className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3 ml-1">Nome *</label>
                 <input
+                  id="list-name"
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -289,17 +316,20 @@ export default function Lists() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3">Descrição</label>
+                <label htmlFor="list-desc" className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3 ml-1">Descrição</label>
                 <textarea
+                  id="list-desc"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-5 py-4 bg-slate-50 dark:bg-dark-950 border border-slate-200 dark:border-dark-700 rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-bold transition-all resize-none"
                   rows={3}
+                  placeholder="Sobre esta coleção..."
                 />
               </div>
               <div>
-                <label className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3">Cor</label>
+                <label htmlFor="list-color" className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3 ml-1">Cor</label>
                 <input
+                  id="list-color"
                   type="color"
                   value={formData.color}
                   onChange={(e) => setFormData({ ...formData, color: e.target.value })}
@@ -332,38 +362,48 @@ export default function Lists() {
 
       {showAddBooksModal && selectedList && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] max-w-2xl w-full max-h-[80vh] overflow-y-auto border border-slate-200 dark:border-dark-800 shadow-2xl animate-in fade-in zoom-in duration-300">
-            <div className="sticky top-0 bg-white dark:bg-dark-900 p-8 border-b border-slate-200 dark:border-dark-800 flex items-center justify-between">
-              <h2 className="text-2xl font-black text-slate-900 dark:text-cream-50 tracking-tight">Adicionar Livros</h2>
+          <div 
+            className="bg-white dark:bg-dark-900 rounded-[2.5rem] max-w-2xl w-full max-h-[80vh] overflow-hidden border border-slate-200 dark:border-dark-800 shadow-2xl animate-in fade-in zoom-in duration-300 flex flex-col relative"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-books-title"
+          >
+            <div className="p-8 border-b border-slate-200 dark:border-dark-800 flex items-center justify-between flex-shrink-0">
+              <h2 id="add-books-title" className="text-2xl font-black text-slate-900 dark:text-cream-50 tracking-tight">Adicionar Livros</h2>
               <button
                 onClick={() => {
                   setShowAddBooksModal(false);
                   setSelectedList(null);
                 }}
-                className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-800 rounded-xl transition-all"
+                aria-label="Fechar"
               >
-                ✕
+                <X className="w-6 h-6" />
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-8 overflow-y-auto flex-1">
               {getAvailableBooks().length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-slate-600 dark:text-slate-400">Todos os livros já estão nesta lista</p>
+                <div className="text-center py-16 bg-slate-50 dark:bg-dark-950/50 rounded-[2rem] border border-dashed border-slate-200 dark:border-dark-800">
+                  <p className="text-sm font-bold text-slate-500 dark:text-cream-200/40 uppercase tracking-widest">Todos os seus livros já estão nesta lista</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {getAvailableBooks().map((book) => (
                     <button
                       key={book.id}
                       onClick={() => handleAddBook(book.id)}
-                      className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition text-left"
+                      className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-dark-950/20 border border-slate-100 dark:border-dark-800 hover:border-dark-600 rounded-[1.5rem] transition-all duration-300 text-left group/add"
                     >
-                      <BookOpen className="w-5 h-5 text-slate-400 dark:text-slate-500" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-900 dark:text-white truncate">{book.title}</p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 truncate">{book.author}</p>
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-dark-800 flex items-center justify-center group-hover/add:bg-cream-100 transition-colors">
+                        <BookOpen className="w-5 h-5 text-slate-400 dark:text-cream-200/20 group-hover/add:text-dark-950" />
                       </div>
-                      <Plus className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-black text-slate-900 dark:text-cream-100 truncate text-sm tracking-tight">{book.title}</p>
+                        <p className="text-[10px] uppercase font-bold text-slate-500 dark:text-cream-200/20 tracking-widest mt-0.5 truncate">{book.author}</p>
+                      </div>
+                      <div className="p-2 rounded-lg bg-slate-100 dark:bg-dark-800 group-hover/add:bg-cream-100 transition-colors">
+                        <Plus className="w-4 h-4 text-slate-400 dark:text-dark-950" />
+                      </div>
                     </button>
                   ))}
                 </div>

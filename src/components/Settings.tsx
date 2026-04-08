@@ -16,7 +16,6 @@ export default function Settings() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-    const [isInstallable, setIsInstallable] = useState(false);
     const [isInstalled, setIsInstalled] = useState(false);
     const [preferences, setPreferences] = useState<UserPreferences>({
         daily_reading_reminder: true,
@@ -33,7 +32,6 @@ export default function Settings() {
         const handleBeforeInstallPrompt = (e: Event) => {
             e.preventDefault();
             setDeferredPrompt(e);
-            setIsInstallable(true);
         };
 
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -53,7 +51,6 @@ export default function Settings() {
             const { outcome } = await deferredPrompt.userChoice;
             if (outcome === 'accepted') {
                 setIsInstalled(true);
-                setIsInstallable(false);
             }
             setDeferredPrompt(null);
         } else {
@@ -77,13 +74,10 @@ export default function Settings() {
                 setPreferences({
                     daily_reading_reminder: data.daily_reading_reminder ?? true,
                     reminder_time: data.reminder_time ? data.reminder_time.slice(0, 5) : '20:00',
-                    theme: (data.theme as 'light' | 'dark') ?? 'dark', // Mudado de 'light' para 'dark'
+                    theme: (data.theme as 'light' | 'dark') ?? 'dark',
                     books_per_page: data.books_per_page ?? 12,
                 });
-                applyTheme((data.theme as 'light' | 'dark') ?? 'dark'); // Mudado de 'light' para 'dark'
-            } else {
-                // Não criar preferências padrão automaticamente
-                // Deixa o tema dark padrão do App.tsx
+                applyTheme((data.theme as 'light' | 'dark') ?? 'dark');
             }
         } catch (error) {
             console.error('Error loading preferences:', error);
@@ -156,12 +150,15 @@ export default function Settings() {
                         <h2>Aparência</h2>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="appearance-title">
                         <button
+                            id="appearance-title"
                             onClick={() => {
                                 setPreferences(p => ({ ...p, theme: 'light' }));
                                 applyTheme('light');
                             }}
+                            role="radio"
+                            aria-checked={preferences.theme === 'light'}
                             className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition ${preferences.theme === 'light'
                                 ? 'border-cream-100 bg-cream-100 dark:border-dark-800'
                                 : 'border-slate-200 hover:border-slate-300 dark:border-dark-800 dark:hover:border-dark-700'
@@ -175,6 +172,8 @@ export default function Settings() {
                                 setPreferences(p => ({ ...p, theme: 'dark' }));
                                 applyTheme('dark');
                             }}
+                            role="radio"
+                            aria-checked={preferences.theme === 'dark'}
                             className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition ${preferences.theme === 'dark'
                                 ? 'border-dark-950 bg-dark-950 text-white dark:border-cream-100'
                                 : 'border-slate-200 hover:border-slate-300 dark:border-dark-800 dark:hover:border-dark-700'
@@ -199,9 +198,11 @@ export default function Settings() {
 
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
-                            <label className="text-sm font-bold text-slate-700 dark:text-cream-200/60">Lembrete diário de leitura</label>
+                            <label htmlFor="reminder-toggle" className="text-sm font-bold text-slate-700 dark:text-cream-200/60">Lembrete diário de leitura</label>
                             <button
+                                id="reminder-toggle"
                                 onClick={() => setPreferences(p => ({ ...p, daily_reading_reminder: !p.daily_reading_reminder }))}
+                                aria-pressed={preferences.daily_reading_reminder}
                                 className={`w-14 h-7 rounded-full transition-all relative ${preferences.daily_reading_reminder ? 'bg-cream-100' : 'bg-slate-200 dark:bg-dark-800'
                                     }`}
                             >
@@ -212,8 +213,9 @@ export default function Settings() {
 
                         {preferences.daily_reading_reminder && (
                             <div className="flex items-center justify-between bg-slate-50 dark:bg-dark-950 p-4 rounded-2xl border border-transparent dark:border-dark-800">
-                                <label className="text-sm font-bold text-slate-700 dark:text-cream-200/60">Horário do lembrete</label>
+                                <label htmlFor="reminder_time" className="text-sm font-bold text-slate-700 dark:text-cream-200/60">Horário do lembrete</label>
                                 <input
+                                    id="reminder_time"
                                     type="time"
                                     value={preferences.reminder_time}
                                     onChange={(e) => setPreferences(p => ({ ...p, reminder_time: e.target.value }))}
@@ -236,8 +238,9 @@ export default function Settings() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                        <label className="text-sm font-bold text-slate-700 dark:text-cream-200/60">Livros por página</label>
+                        <label htmlFor="books_per_page" className="text-sm font-bold text-slate-700 dark:text-cream-200/60">Livros por página</label>
                         <select
+                            id="books_per_page"
                             value={preferences.books_per_page}
                             onChange={(e) => setPreferences(p => ({ ...p, books_per_page: Number(e.target.value) }))}
                             className="px-4 py-2 bg-slate-50 dark:bg-dark-950 border border-slate-200 dark:border-dark-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black transition-all cursor-pointer"

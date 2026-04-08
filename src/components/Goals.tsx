@@ -196,7 +196,6 @@ function BookMiniCard({ book, type }: { book: BookSummary; type: 'completed' | '
   );
 }
 
-// ─── Card de meta mensal/anual com breakdown ──────────────────────────────────
 function MonthlyGoalCard({
   goal,
   p,
@@ -255,14 +254,14 @@ function MonthlyGoalCard({
             <button
               onClick={onEdit}
               className="p-2 text-slate-400 hover:text-dark-950 hover:bg-cream-100/80 dark:hover:text-dark-950 dark:hover:bg-cream-100 transition-all rounded-xl"
-              title="Editar meta"
+              aria-label="Editar meta"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={onDeactivate}
               className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10 transition-all rounded-xl"
-              title="Desativar meta"
+              aria-label="Desativar meta"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -359,6 +358,8 @@ function MonthlyGoalCard({
               <button
                 onClick={() => setExpanded(v => !v)}
                 className="flex items-center gap-1 text-[10px] font-black text-slate-400 dark:text-cream-200/30 uppercase tracking-wider hover:text-slate-600 dark:hover:text-cream-100 transition-colors ml-auto"
+                aria-expanded={expanded}
+                aria-label={expanded ? 'Ver menos detalhes' : 'Ver detalhes da meta'}
               >
                 {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                 {expanded ? 'Menos' : 'Detalhes'}
@@ -433,6 +434,18 @@ export default function Goals() {
     goal_type: 'daily_pages',
     target_value: '',
   });
+
+  // Accessibility: ESC to close
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowModal(false);
+        setEditingGoalId(null);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
 
   useEffect(() => {
     if (user) loadGoals();
@@ -821,10 +834,10 @@ export default function Goals() {
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <button onClick={() => handleEditClicked(goal)} className="p-2 text-slate-400 hover:text-dark-950 hover:bg-cream-100/80 dark:hover:text-dark-950 dark:hover:bg-cream-100 transition-all rounded-xl" title="Editar meta">
+                              <button onClick={() => handleEditClicked(goal)} className="p-2 text-slate-400 hover:text-dark-950 hover:bg-cream-100/80 dark:hover:text-dark-950 dark:hover:bg-cream-100 transition-all rounded-xl" aria-label="Editar meta">
                                 <Pencil className="w-3.5 h-3.5" />
                               </button>
-                              <button onClick={() => handleDeactivate(goal.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10 transition-all rounded-xl" title="Desativar meta">
+                              <button onClick={() => handleDeactivate(goal.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10 transition-all rounded-xl" aria-label="Desativar meta">
                                 <X className="w-3.5 h-3.5" />
                               </button>
                             </div>
@@ -877,7 +890,12 @@ export default function Goals() {
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
           onClick={(e) => e.target === e.currentTarget && setShowModal(false)}
         >
-          <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] w-full max-w-lg border border-slate-200 dark:border-dark-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+          <div 
+            className="bg-white dark:bg-dark-900 rounded-[2.5rem] w-full max-w-lg border border-slate-200 dark:border-dark-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="goal-modal-title"
+          >
             {/* Header Gradiente */}
             <div className={`bg-gradient-to-r ${selectedConfig.gradient} p-6 flex-shrink-0 relative overflow-hidden`}>
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
@@ -887,7 +905,7 @@ export default function Goals() {
                     <selectedConfig.icon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-white leading-tight">
+                    <h2 id="goal-modal-title" className="text-xl font-black text-white leading-tight">
                       {editingGoalId ? 'Editar Meta' : 'Nova Meta'}
                     </h2>
                     <p className="text-white/80 text-xs font-medium uppercase tracking-wider">{selectedConfig.label}</p>
@@ -896,6 +914,7 @@ export default function Goals() {
                 <button
                   onClick={() => { setShowModal(false); setEditingGoalId(null); setFormData({ goal_type: 'daily_pages', target_value: '' }); }}
                   className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+                  aria-label="Fechar"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -905,8 +924,8 @@ export default function Goals() {
             {/* Conteúdo com Scroll */}
             <div className="overflow-y-auto flex-1 p-8 space-y-10 custom-scrollbar bg-white dark:bg-dark-950">
               {/* Presets */}
-              <div>
-                <p className="text-[10px] font-black text-slate-400 dark:text-cream-200/20 uppercase tracking-[0.3em] mb-6">
+              <section aria-labelledby="presets-title">
+                <p id="presets-title" className="text-[10px] font-black text-slate-400 dark:text-cream-200/20 uppercase tracking-[0.3em] mb-6">
                   ⚡ Sugestões Rápidas
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -915,30 +934,33 @@ export default function Goals() {
                       key={p.label}
                       type="button"
                       onClick={() => applyPreset(p)}
-                      className={`text-[11px] px-5 py-2.5 rounded-2xl font-black uppercase tracking-wider transition-all border ${formData.goal_type === p.type && formData.target_value === String(p.value)
+                      className={`text-[11px] px-5 py-2.5 rounded-2xl font-black uppercase tracking-wider transition-all border focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-950 ${formData.goal_type === p.type && formData.target_value === String(p.value)
                           ? 'bg-cream-100 text-dark-950 border-cream-100 shadow-xl shadow-black/40 scale-105'
                           : 'bg-slate-50 dark:bg-dark-900 text-slate-500 dark:text-cream-200/30 hover:bg-dark-800 dark:hover:bg-dark-800 hover:text-cream-100 dark:hover:text-cream-100 border-slate-100 dark:border-dark-800'
                         }`}
+                      aria-pressed={formData.goal_type === p.type && formData.target_value === String(p.value)}
                     >
                       {p.emoji} {p.label}
                     </button>
                   ))}
                 </div>
-              </div>
+              </section>
 
               {/* Tipo */}
-              <div>
-                <p className="text-[10px] font-black text-slate-400 dark:text-cream-200/20 uppercase tracking-[0.3em] mb-6">
+              <section aria-labelledby="type-title">
+                <p id="type-title" className="text-[10px] font-black text-slate-400 dark:text-cream-200/20 uppercase tracking-[0.3em] mb-6">
                   🎯 Personalizar Objetivo
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-labelledby="type-title">
                   {(Object.entries(GOAL_CONFIGS) as [GoalType, typeof GOAL_CONFIGS[GoalType]][]).map(
                     ([type, cfg]) => (
                       <button
                         key={type}
                         type="button"
                         onClick={() => setFormData((f) => ({ ...f, goal_type: type }))}
-                        className={`flex flex-col gap-3 p-4 rounded-3xl border-2 text-left transition-all group relative overflow-hidden ${formData.goal_type === type
+                        role="radio"
+                        aria-checked={formData.goal_type === type}
+                        className={`flex flex-col gap-3 p-4 rounded-3xl border-2 text-left transition-all group relative overflow-hidden focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-950 ${formData.goal_type === type
                             ? 'border-cream-100 bg-cream-100/5'
                             : 'border-slate-100 dark:border-dark-800 hover:border-dark-700 bg-slate-50/50 dark:bg-black/20'
                           }`}
@@ -962,18 +984,19 @@ export default function Goals() {
                     )
                   )}
                 </div>
-              </div>
+              </section>
 
               {/* Valor */}
-              <div>
-                <p className="text-[10px] font-black text-slate-400 dark:text-cream-200/20 uppercase tracking-[0.3em] mb-6">
+              <section aria-labelledby="value-title">
+                <label id="value-title" htmlFor="goal_target_value" className="text-[10px] font-black text-slate-400 dark:text-cream-200/20 uppercase tracking-[0.3em] mb-6 block">
                   🔢 Valor da Meta
-                </p>
+                </label>
                 <div className="relative group">
                   <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-cream-200/20 group-focus-within:text-cream-100 transition-colors">
                     <Target className="w-5 h-5 shadow-sm" />
                   </div>
                   <input
+                    id="goal_target_value"
                     type="number"
                     value={formData.target_value}
                     onChange={(e) => setFormData((f) => ({ ...f, target_value: e.target.value }))}
@@ -986,7 +1009,7 @@ export default function Goals() {
                     {selectedConfig.unit}
                   </div>
                 </div>
-              </div>
+              </section>
             </div>
 
             {/* Footer */}
