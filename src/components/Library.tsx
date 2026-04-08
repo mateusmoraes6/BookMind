@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus, Search, BookOpen, Star, Edit2, Trash2, Eye, ArrowLeft, Layers } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { booksService } from '../services/booksService';
 import { useAuth } from '../contexts/AuthContext';
 import BookModal from './BookModal';
 import BookDetailModal from './BookDetailModal';
@@ -46,18 +46,14 @@ export default function Library() {
     if (!user) return;
     if (!silent) setLoading(true);
 
-    const [booksRes, genresRes] = await Promise.all([
-      supabase
-        .from('books')
-        .select('*, genres(id, name, color)')
-        .eq('user_id', user.id)
-        .order('title', { ascending: true }),
-      (supabase.from('genres') as any).select('*').eq('user_id', user.id).order('name'),
-    ]);
+    try {
+      const [allBooks, allGenres] = await Promise.all([
+        booksService.getBooksByUserId(user.id),
+        booksService.getGenresByUserId(user.id)
+      ]);
 
-    if (booksRes.data) {
-      const allBooks = booksRes.data as unknown as Book[];
       setBooks(allBooks);
+      setGenres(allGenres as any);
       
       // Update selected book if it exists to reflect changes in the modal (Goal #2)
       if (selectedBook) {
@@ -75,10 +71,11 @@ export default function Library() {
           books: updatedShelfBooks
         });
       }
+    } catch (error) {
+      console.error('Error loading library data:', error);
+    } finally {
+      setLoading(false);
     }
-    if (genresRes.data) setGenres(genresRes.data);
-
-    setLoading(false);
   };
 
   // Build shelves: one per genre that has books + "uncategorized" shelf
@@ -141,8 +138,8 @@ export default function Library() {
 
   const confirmDelete = async () => {
     if (!bookToDelete) return;
-    const { error } = await supabase.from('books').delete().eq('id', bookToDelete);
-    if (!error) {
+    try {
+      await booksService.deleteBook(bookToDelete);
       setBooks(books.filter((b) => b.id !== bookToDelete));
       if (selectedShelf) {
         setSelectedShelf({
@@ -150,6 +147,8 @@ export default function Library() {
           books: selectedShelf.books.filter((b) => b.id !== bookToDelete),
         });
       }
+    } catch (error) {
+      console.error('Error deleting book:', error);
     }
     setShowConfirmDelete(false);
     setBookToDelete(null);
