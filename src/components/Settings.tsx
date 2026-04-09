@@ -4,6 +4,11 @@ import ConfirmDialog from './ConfirmDialog';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { getLocalISOString } from '../lib/dateUtils';
+import { PageHeader } from './ui/PageHeader';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
+import { Select } from './ui/Select';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 
 interface UserPreferences {
     daily_reading_reminder: boolean;
@@ -155,12 +160,10 @@ export default function Settings() {
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-cream-100 tracking-tight leading-tight">Configurações</h1>
-                    <p className="text-slate-600 dark:text-slate-400 mt-2 font-medium">Personalize sua experiência no BookMind</p>
-                </div>
-            </div>
+            <PageHeader
+                title="Configurações"
+                description="Personalize sua experiência no BookMind"
+            />
 
             <div className="bg-white dark:bg-dark-900 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-dark-800 p-8 space-y-10 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-cream-100/5 rounded-full -mr-32 -mt-32 blur-[100px]" />
@@ -239,19 +242,14 @@ export default function Settings() {
                         </div>
 
                         {preferences.daily_reading_reminder && (
-                            <div className="flex items-center justify-between bg-slate-50 dark:bg-dark-950 p-6 rounded-[1.5rem] border border-transparent dark:border-dark-800 animate-in fade-in slide-in-from-top-4 duration-300">
-                                <div>
-                                    <label htmlFor="reminder_time" className="text-sm font-black text-slate-900 dark:text-cream-100 tracking-tight">Horário do lembrete</label>
-                                    <p className="text-[10px] text-slate-500 dark:text-cream-200/20 uppercase font-black tracking-widest mt-1">Horário de Brasília</p>
-                                </div>
-                                <input
-                                    id="reminder_time"
-                                    type="time"
-                                    value={preferences.reminder_time}
-                                    onChange={(e) => setPreferences(p => ({ ...p, reminder_time: e.target.value }))}
-                                    className="px-5 py-3 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black transition-all shadow-sm"
-                                />
-                            </div>
+                            <Input
+                                id="reminder_time"
+                                type="time"
+                                label="Horário do lembrete"
+                                value={preferences.reminder_time}
+                                onChange={(e) => setPreferences(p => ({ ...p, reminder_time: e.target.value }))}
+                                className="max-w-[200px]"
+                            />
                         )}
                     </div>
                 </section>
@@ -267,23 +265,18 @@ export default function Settings() {
                         <h2>Interface</h2>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 px-6 bg-slate-50/50 dark:bg-dark-950/50 rounded-[1.5rem] border border-transparent dark:border-dark-800">
-                        <div>
-                            <label htmlFor="books_per_page" className="text-sm font-black text-slate-900 dark:text-cream-100 tracking-tight">Livros por página</label>
-                            <p className="text-[10px] text-slate-500 dark:text-cream-200/20 uppercase font-black tracking-widest mt-1">Visualização da biblioteca</p>
-                        </div>
-                        <select
-                            id="books_per_page"
-                            value={preferences.books_per_page}
-                            onChange={(e) => setPreferences(p => ({ ...p, books_per_page: Number(e.target.value) }))}
-                            className="px-5 py-3 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black transition-all cursor-pointer shadow-sm"
-                        >
-                            <option value={8} className="bg-dark-900">8 livros</option>
-                            <option value={12} className="bg-dark-900">12 livros</option>
-                            <option value={24} className="bg-dark-900">24 livros</option>
-                            <option value={48} className="bg-dark-900">48 livros</option>
-                        </select>
-                    </div>
+                    <Select
+                        id="books_per_page"
+                        label="Livros por página"
+                        value={preferences.books_per_page}
+                        onChange={(e) => setPreferences(p => ({ ...p, books_per_page: Number(e.target.value) }))}
+                        options={[
+                            { label: '8 livros', value: 8 },
+                            { label: '12 livros', value: 12 },
+                            { label: '24 livros', value: 24 },
+                            { label: '48 livros', value: 48 },
+                        ]}
+                    />
                 </section>
 
                 <hr className="border-slate-100 dark:border-dark-800" />
@@ -310,13 +303,13 @@ export default function Settings() {
                             </div>
 
                             {!isInstalled && (
-                                <button
+                                <Button
                                     onClick={handleInstallClick}
-                                    className="flex items-center justify-center gap-3 px-8 py-4 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-black/20 transform active:scale-95"
+                                    className="px-8 py-4 h-auto rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-black/20"
                                 >
-                                    <Download className="w-5 h-5" />
+                                    <Download className="w-5 h-5 mr-3" />
                                     Instalar Agora
-                                </button>
+                                </Button>
                             )}
 
                             {isInstalled && (
@@ -329,14 +322,15 @@ export default function Settings() {
                 </section>
 
                 <div className="pt-6">
-                    <button
+                    <Button
                         onClick={handleSave}
                         disabled={saving}
-                        className="w-full flex items-center justify-center gap-4 px-10 py-5 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition-all shadow-2xl shadow-black/40 font-black text-xs uppercase tracking-[0.25em] transform active:scale-[0.98] disabled:opacity-50"
+                        isLoading={saving}
+                        className="w-full py-5 h-auto rounded-2xl shadow-2xl shadow-black/40 font-black text-xs uppercase tracking-[0.25em]"
                     >
-                        <Save className="w-5 h-5 mb-0.5" />
+                        {!saving && <Save className="w-5 h-5 mb-0.5 mr-4" />}
                         {saving ? 'Salvando...' : 'Salvar Preferências'}
-                    </button>
+                    </Button>
                 </div>
             </div>
 

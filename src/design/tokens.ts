@@ -28,6 +28,7 @@ export const tokens = {
       success: { light: '#16a34a', dark: '#34d399' }, // green-600 / emerald-400
       warning: { light: '#f59e0b', dark: '#fb923c' }, // amber-500 / orange-400
       danger: { light: '#ef4444', dark: '#f97316' }, // red-500 / orange-500
+      primary: { light: '#6366f1', dark: '#818cf8' }, // indigo-500 / indigo-400
     }
   },
   

@@ -10,15 +10,16 @@ import BookDetailModal from './BookDetailModal';
 import BookModal from './BookModal';
 import { Book, BOOK_STATUS_METADATA, BookStatus } from '../types/book';
 import { Skeleton, InlineError, EmptyState } from './feedback';
+import { PageHeader } from './ui/PageHeader';
 
 // Interfaces moved to sessionsService.ts
 
 // Interfaces moved to sessionsService.ts
 
 export default function Dashboard() {
-  const { 
-    stats, currentBooks, recentBooks, allBooks, 
-    last7Days, activeGoals, loading, error, refresh 
+  const {
+    stats, currentBooks, recentBooks, allBooks,
+    last7Days, activeGoals, loading, error, refresh
   } = useDashboardData();
 
   const [activeBookIndex, setActiveBookIndex] = useState(0);
@@ -246,8 +247,8 @@ export default function Dashboard() {
             <Skeleton variant="text" className="h-10 w-3/4" />
             <Skeleton variant="text" className="h-6 w-1/2" />
             <div className="pt-8">
-               <Skeleton variant="text" className="h-4 w-full" />
-               <Skeleton className="h-3 w-full rounded-full" />
+              <Skeleton variant="text" className="h-4 w-full" />
+              <Skeleton className="h-3 w-full rounded-full" />
             </div>
           </div>
         </div>
@@ -286,9 +287,9 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh]">
-        <InlineError 
-          message={typeof error === 'string' ? error : error.message} 
-          onRetry={() => refresh()} 
+        <InlineError
+          message={typeof error === 'string' ? error : error.message}
+          onRetry={() => refresh()}
         />
       </div>
     );
@@ -316,12 +317,10 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 pb-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-cream-50 leading-tight">Dashboard</h1>
-        <p className="text-slate-500 dark:text-cream-200/40 mt-1 text-sm font-medium tracking-wide">
-          Visão geral das suas leituras
-        </p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description="Visão geral das suas leituras"
+      />
 
       {/* ── Hero: Lendo Agora ── */}
       {currentBooks.length > 0 && (

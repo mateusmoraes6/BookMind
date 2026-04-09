@@ -7,6 +7,9 @@ import { Book, BOOK_STATUS_METADATA, BOOK_STATUS_LIST, BookStatus } from '../typ
 import ConfirmDialog from './ConfirmDialog';
 import { useLibraryData, Genre } from '../hooks/useLibraryData';
 import { EmptyState, InlineError, CardSkeleton } from './feedback';
+import { PageHeader } from './ui/PageHeader';
+import { Button } from './ui/Button';
+import { Badge } from './ui/Badge';
 
 interface CategoryShelf {
   genre: Genre | null; // null = "Sem categoria"
@@ -177,9 +180,9 @@ export default function Library() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh]">
-        <InlineError 
-          message={typeof error === 'string' ? error : error.message} 
-          onRetry={() => refresh()} 
+        <InlineError
+          message={typeof error === 'string' ? error : error.message}
+          onRetry={() => refresh()}
         />
       </div>
     );
@@ -190,24 +193,19 @@ export default function Library() {
     return (
       <div className="space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-black text-slate-900 dark:text-cream-50 leading-tight">
-              Biblioteca
-            </h1>
-            <p className="text-slate-500 dark:text-cream-200/40 mt-1 text-sm font-medium tracking-wide">
-              {books.length} {books.length === 1 ? 'livro' : 'livros'} em {shelves.length} {shelves.length === 1 ? 'categoria' : 'categorias'}
-            </p>
-          </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center justify-center gap-3 px-6 py-3.5 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition-all shadow-xl shadow-black/20 font-black text-xs uppercase tracking-widest w-full sm:w-auto transform active:scale-95"
-            aria-label="Adicionar Livro"
-          >
-            <Plus className="w-5 h-5 mb-0.5" />
-            Adicionar Livro
-          </button>
-        </div>
+        <PageHeader
+          title="Biblioteca"
+          description={`${books.length} ${books.length === 1 ? 'livro' : 'livros'} em ${shelves.length} ${shelves.length === 1 ? 'categoria' : 'categorias'}`}
+          action={
+            <Button
+              onClick={() => setShowModal(true)}
+              className="w-full sm:w-auto transform active:scale-95 py-3.5 h-auto rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-black/20"
+            >
+              <Plus className="w-5 h-5 mb-0.5 mr-2" />
+              Adicionar Livro
+            </Button>
+          }
+        />
 
         {/* Empty state */}
         {shelves.length === 0 && (
@@ -368,44 +366,46 @@ export default function Library() {
   return (
     <div className="space-y-6">
       {/* Header with back button */}
+      {/* Header with back button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <button
+          <Button
+            variant="secondary"
+            size="icon"
             onClick={handleBack}
-            className="p-3 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 rounded-2xl text-slate-600 dark:text-cream-200/60 hover:bg-slate-50 dark:hover:bg-dark-800 transition-all shadow-sm hover:shadow-md transform active:scale-95"
-            aria-label="Voltar para estantes"
+            className="rounded-2xl p-3 h-auto shadow-sm"
           >
             <ArrowLeft className="w-5 h-5" />
-          </button>
+          </Button>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <div
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest"
+              <Badge
                 style={{
                   backgroundColor: `${shelfColor}15`,
                   color: shelfColor,
+                  borderColor: `${shelfColor}30`,
                 }}
+                className="border"
               >
-                <Layers className="w-2.5 h-2.5" />
+                <Layers className="w-2.5 h-2.5 mr-1" />
                 {shelfName}
-              </div>
+              </Badge>
             </div>
-            <h1 className="text-3xl font-black text-slate-900 dark:text-cream-50 leading-tight">
+            <h1 className="text-3xl font-black text-text dark:text-text-dark leading-tight tracking-tight">
               {shelfName}
             </h1>
-            <p className="text-slate-500 dark:text-cream-200/40 mt-0.5 text-sm font-medium">
+            <p className="text-slate-500 dark:text-slate-400 mt-0.5 text-sm font-medium">
               {visibleBooks.length} de {selectedShelf?.books.length} livros
             </p>
           </div>
         </div>
-        <button
+        <Button
           onClick={() => setShowModal(true)}
-          className="flex items-center justify-center gap-3 px-6 py-3.5 bg-cream-100 hover:bg-cream-50 text-dark-950 rounded-2xl transition-all shadow-xl shadow-black/20 font-black text-xs uppercase tracking-widest w-full sm:w-auto transform active:scale-95"
-          aria-label="Adicionar Livro"
+          className="w-full sm:w-auto transform active:scale-95 py-3.5 h-auto rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-black/20"
         >
-          <Plus className="w-5 h-5 mb-0.5" />
+          <Plus className="w-5 h-5 mb-0.5 mr-2" />
           Adicionar Livro
-        </button>
+        </Button>
       </div>
 
       {/* Status summary pills */}
@@ -414,8 +414,8 @@ export default function Library() {
           <button
             onClick={() => setFilterStatus('all')}
             className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${filterStatus === 'all'
-                ? 'bg-slate-900 dark:bg-cream-100 text-white dark:text-dark-950 shadow-lg'
-                : 'bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 text-slate-500 dark:text-cream-200/50 hover:border-dark-600'
+              ? 'bg-slate-900 dark:bg-cream-100 text-white dark:text-dark-950 shadow-lg'
+              : 'bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 text-slate-500 dark:text-cream-200/50 hover:border-dark-600'
               }`}
           >
             Todos · {shelfCounts.total}
@@ -425,8 +425,8 @@ export default function Library() {
               key={status.id}
               onClick={() => setFilterStatus(status.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${filterStatus === status.id
-                  ? 'text-white shadow-lg'
-                  : 'bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 text-slate-500 dark:text-cream-200/50'
+                ? 'text-white shadow-lg'
+                : 'bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 text-slate-500 dark:text-cream-200/50'
                 }`}
               style={{
                 backgroundColor: filterStatus === status.id ? status.color : undefined,

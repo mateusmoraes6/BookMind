@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { AlertCircle, X, HelpCircle, Info } from 'lucide-react';
+import { Button } from './ui/Button';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -54,7 +55,7 @@ export default function ConfirmDialog({
     },
   };
 
-  const { icon: Icon, iconClass, buttonClass } = typeConfig[type];
+  const { icon: Icon, iconClass } = typeConfig[type];
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
@@ -73,31 +74,33 @@ export default function ConfirmDialog({
             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 border border-current shadow-lg ${iconClass}`}>
               <Icon className="w-8 h-8" />
             </div>
-            
+
             <h2 id="confirm-title" className="text-2xl font-black text-slate-900 dark:text-cream-50 tracking-tight mb-2">
               {title}
             </h2>
-            
+
             <p id="confirm-description" className="text-sm font-medium text-slate-500 dark:text-cream-200/40 leading-relaxed mb-8">
               {message}
             </p>
 
             <div className="flex gap-3 w-full">
               {showCancel && (
-                <button
+                <Button
+                  variant="secondary"
                   onClick={onCancel}
-                  className="flex-1 px-6 py-4 bg-slate-50 dark:bg-dark-800 border border-slate-200 dark:border-dark-700 text-slate-600 dark:text-cream-200/40 rounded-2xl hover:bg-slate-100 dark:hover:bg-dark-700 transition-all font-black text-xs uppercase tracking-widest transform active:scale-95"
+                  className="flex-1 py-4 h-auto rounded-2xl font-black text-xs uppercase tracking-widest"
                 >
                   {cancelLabel}
-                </button>
+                </Button>
               )}
-              <button
+              <Button
+                variant={type === 'danger' ? 'danger' : type === 'warning' ? 'warning' : 'primary'}
                 onClick={onConfirm}
-                className={`flex-1 px-6 py-4 rounded-2xl transition-all font-black text-xs uppercase tracking-widest shadow-xl shadow-black/20 transform active:scale-95 ${buttonClass}`}
+                className="flex-1 py-4 h-auto rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-black/20"
                 autoFocus
               >
                 {confirmLabel}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

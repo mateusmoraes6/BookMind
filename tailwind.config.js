@@ -36,6 +36,10 @@ export default {
           DEFAULT: tokens.colors.semantic.danger.light,
           dark: tokens.colors.semantic.danger.dark,
         },
+        'primary': {
+          DEFAULT: tokens.colors.semantic.primary.light,
+          dark: tokens.colors.semantic.primary.dark,
+        },
       },
       fontSize: tokens.typography.fontSize,
       fontWeight: tokens.typography.fontWeight,
