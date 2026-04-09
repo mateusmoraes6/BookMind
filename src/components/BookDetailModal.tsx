@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { getLocalDateISO, getLocalISOString } from '../lib/dateUtils';
 import { Book, BOOK_STATUS_METADATA, BookStatus } from '../types/book';
+import { useToast } from '../contexts/ToastContext';
 
 interface BookDetailModalProps {
   book: Book;
@@ -14,7 +15,9 @@ interface BookDetailModalProps {
 
 export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }: BookDetailModalProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [sessions, setSessions] = useState<any[]>([]);
+
   const [showAddSession, setShowAddSession] = useState(false);
   const [sessionData, setSessionData] = useState({
     pages_read: '',
@@ -84,13 +87,15 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
       setShowAddSession(false);
       setSessionData({ pages_read: '', duration_minutes: '', notes: '' });
       await loadBookData();
-      
+
       // Notify parent to refresh data instead of reloading page
       if (onBookUpdated) {
         onBookUpdated();
       }
+      toast('Sessão registrada com sucesso!', 'success');
     } catch (error) {
       console.error('Error adding session:', error);
+      toast('Erro ao registrar sessão', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -104,7 +109,7 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-      <div 
+      <div
         className="bg-white dark:bg-dark-900 rounded-[2.5rem] max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-dark-800 relative animate-in fade-in zoom-in duration-300"
         role="dialog"
         aria-modal="true"
@@ -207,7 +212,7 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
               </div>
               <p className="text-3xl font-black text-slate-900 dark:text-cream-50 relative z-10 leading-none">{totalPagesRead} <span className="text-sm font-bold opacity-30 text-slate-500">pág</span></p>
             </div>
-            
+
             <div className="bg-white dark:bg-dark-950 rounded-3xl p-6 border border-slate-200 dark:border-dark-800 shadow-sm relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-24 h-24 bg-cream-100/5 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-cream-100/10 transition-colors" />
               <div className="flex items-center gap-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-cream-200/20 mb-3 relative z-10">

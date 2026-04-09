@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Save, Moon, Sun, Bell, Layout, Download, Smartphone } from 'lucide-react';
-import ConfirmDialog from './ConfirmDialog';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { getLocalISOString } from '../lib/dateUtils';
@@ -8,7 +7,7 @@ import { PageHeader } from './ui/PageHeader';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Select } from './ui/Select';
-import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
+import { useToast } from '../contexts/ToastContext';
 
 interface UserPreferences {
     daily_reading_reminder: boolean;
@@ -17,17 +16,17 @@ interface UserPreferences {
     books_per_page: number;
 }
 
+interface BeforeInstallPromptEvent extends Event {
+    prompt: () => void;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 export default function Settings() {
     const { user } = useAuth();
+    const { toast } = useToast();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-    const [notification, setNotification] = useState<{
-        title: string;
-        message: string;
-        type: 'danger' | 'info' | 'warning';
-    } | null>(null);
-    const [showNotification, setShowNotification] = useState(false);
+    const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
     const [isInstalled, setIsInstalled] = useState(false);
     const [preferences, setPreferences] = useState<UserPreferences>({
         daily_reading_reminder: true,
@@ -43,7 +42,7 @@ export default function Settings() {
 
         const handleBeforeInstallPrompt = (e: Event) => {
             e.preventDefault();
-            setDeferredPrompt(e);
+            setDeferredPrompt(e as BeforeInstallPromptEvent);
         };
 
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -66,12 +65,7 @@ export default function Settings() {
             }
             setDeferredPrompt(null);
         } else {
-            setNotification({
-                title: 'Como Instalar',
-                message: 'Para instalar o BookMind:\n\nChrome/Edge: Clique nos 3 pontos ⋮ e escolha "Instalar BookMind" ou "Instalar Aplicativo".\n\nSafari (iOS): Toque no ícone de compartilhar (quadrado com seta) e escolha "Adicionar à Tela de Início".',
-                type: 'info',
-            });
-            setShowNotification(true);
+            toast('Para instalar no iOS: Compartilhar > Adicionar à Tela de Início. Android/PC: Instalar App/PWA.', 'info');
         }
     };
 
@@ -131,20 +125,10 @@ export default function Settings() {
             if (error) throw error;
 
             applyTheme(preferences.theme);
-            setNotification({
-                title: 'Sucesso',
-                message: 'Configurações salvas com sucesso!',
-                type: 'info',
-            });
-            setShowNotification(true);
+            toast('Configurações salvas com sucesso!', 'success');
         } catch (error) {
             console.error('Error saving preferences:', error);
-            setNotification({
-                title: 'Erro',
-                message: 'Erro ao salvar configurações.',
-                type: 'danger',
-            });
-            setShowNotification(true);
+            toast('Erro ao salvar configurações.', 'error');
         } finally {
             setSaving(false);
         }
@@ -333,19 +317,6 @@ export default function Settings() {
                     </Button>
                 </div>
             </div>
-
-            {notification && (
-                <ConfirmDialog
-                    isOpen={showNotification}
-                    title={notification.title}
-                    message={notification.message}
-                    onConfirm={() => setShowNotification(false)}
-                    onCancel={() => setShowNotification(false)}
-                    confirmLabel="Entendido"
-                    showCancel={false}
-                    type={notification.type}
-                />
-            )}
         </div>
     );
 }

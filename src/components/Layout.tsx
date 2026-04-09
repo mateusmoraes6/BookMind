@@ -44,7 +44,7 @@ export default function Layout({ children }: LayoutProps) {
       <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 dark:bg-dark-900/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-30 shadow-lg">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 text-white hover:bg-white/10 rounded-xl transition-all focus-visible:ring-offset-slate-900"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center text-white hover:bg-white/10 rounded-xl transition-all focus-visible:ring-offset-slate-900 active:scale-95"
           aria-label={isMobileMenuOpen ? "Fechar menu" : "Abrir menu"}
           aria-expanded={isMobileMenuOpen}
         >
@@ -93,7 +93,7 @@ export default function Layout({ children }: LayoutProps) {
           <span className="text-[10px] uppercase font-black text-slate-400 dark:text-cream-200/20 tracking-widest">Navegação</span>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-slate-400 dark:text-cream-200/40 hover:bg-slate-100 dark:hover:bg-dark-800 rounded-lg transition-all"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 dark:text-cream-200/40 hover:bg-slate-100 dark:hover:bg-dark-800 rounded-lg transition-all active:scale-95"
             aria-label="Fachar menu"
           >
             <X className="w-5 h-5" />
@@ -108,7 +108,7 @@ export default function Layout({ children }: LayoutProps) {
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.path)}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${active
+                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all active:scale-[0.98] ${active
                   ? 'bg-slate-900 dark:bg-cream-100 text-white dark:text-dark-950 shadow-xl shadow-black/20 font-bold'
                   : 'text-slate-600 dark:text-cream-200/60 hover:bg-slate-100 dark:hover:bg-dark-800 font-medium'
                   }`}
@@ -124,7 +124,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className="p-4 border-t border-slate-200 dark:border-dark-800 space-y-2">
           <button
             onClick={() => handleNavClick('/settings')}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${isActive('/settings')
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all active:scale-[0.98] ${isActive('/settings')
               ? 'bg-slate-900 dark:bg-cream-100 text-white dark:text-dark-950 shadow-xl shadow-black/20 font-bold'
               : 'text-slate-600 dark:text-cream-200/60 hover:bg-slate-100 dark:hover:bg-dark-800 font-medium'
               }`}
@@ -135,7 +135,7 @@ export default function Layout({ children }: LayoutProps) {
           </button>
           <button
             onClick={signOut}
-            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all font-bold"
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all font-bold active:scale-[0.98]"
             aria-label="Sair da conta"
           >
             <LogOut className="w-5 h-5" />

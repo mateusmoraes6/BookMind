@@ -13,6 +13,7 @@ import Lists from './components/Lists';
 import Calendar from './components/Calendar';
 import Settings from './components/Settings';
 import { InstallPWA } from './components/InstallPWA';
+import { ToastProvider } from './contexts/ToastContext';
 
 
 function AppContent() {
@@ -88,7 +89,9 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </AuthProvider>
   );
 }

@@ -8,8 +8,8 @@ export default {
     extend: {
       colors: {
         // Legacy colors for backward compatibility
-        ...tokens.colors.cream,
-        ...tokens.colors.dark,
+        cream: tokens.colors.cream,
+        dark: tokens.colors.dark,
 
         // Semantic Tokens (Sprint 3)
         'bg': {
@@ -47,7 +47,11 @@ export default {
       spacing: tokens.spacing,
       borderRadius: tokens.radius,
       boxShadow: tokens.shadow,
-      transitionDuration: tokens.duration,
+      transitionDuration: {
+        ...tokens.duration,
+        '300': '200ms',
+        '500': '250ms',
+      },
     },
   },
   plugins: [],

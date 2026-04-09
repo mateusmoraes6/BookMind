@@ -510,9 +510,9 @@ export default function Goals() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh]">
-        <InlineError 
-          message={typeof error === 'string' ? error : error.message} 
-          onRetry={() => refresh()} 
+        <InlineError
+          message={typeof error === 'string' ? error : error.message}
+          onRetry={() => refresh()}
         />
       </div>
     );

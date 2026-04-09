@@ -7,6 +7,7 @@ import { Modal } from './ui/Modal';
 import { Input } from './ui/Input';
 import { Select } from './ui/Select';
 import { Button } from './ui/Button';
+import { useToast } from '../contexts/ToastContext';
 
 interface Genre {
   id: string;
@@ -21,6 +22,7 @@ interface BookModalProps {
 
 export default function BookModal({ book, onClose }: BookModalProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [genres, setGenres] = useState<Genre[]>([]);
   const [formData, setFormData] = useState({
@@ -69,7 +71,12 @@ export default function BookModal({ book, onClose }: BookModalProps) {
       ? await (supabase.from('books') as any).update(data).eq('id', book.id)
       : await (supabase.from('books') as any).insert([data]);
 
-    if (!error) onClose();
+    if (!error) {
+      toast(book ? 'Livro atualizado com sucesso!' : 'Livro adicionado com sucesso!', 'success');
+      onClose();
+    } else {
+      toast('Erro ao salvar livro', 'error');
+    }
     setLoading(false);
   };
 
