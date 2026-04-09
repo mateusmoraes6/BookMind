@@ -1,3 +1,5 @@
+import { tokens } from './src/design/tokens';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class',
@@ -5,21 +7,45 @@ export default {
   theme: {
     extend: {
       colors: {
-        cream: {
-          50: '#fafaf9',
-          100: '#f5f5f4',
-          200: '#e7e5e4',
-          300: '#d6d3d1',
-          soft: '#FDF5E6',
+        // Legacy colors for backward compatibility
+        ...tokens.colors.cream,
+        ...tokens.colors.dark,
+
+        // Semantic Tokens (Sprint 3)
+        'bg': {
+          DEFAULT: tokens.colors.semantic.bg.light,
+          dark: tokens.colors.semantic.bg.dark,
         },
-        dark: {
-          950: '#0a0a0a',
-          900: '#121212',
-          800: '#1a1a1a',
-          700: '#262626',
-        }
-      }
+        'surface': {
+          DEFAULT: tokens.colors.semantic.surface.light,
+          dark: tokens.colors.semantic.surface.dark,
+        },
+        'text': {
+          DEFAULT: tokens.colors.semantic.text.light,
+          dark: tokens.colors.semantic.text.dark,
+        },
+        'success': {
+          DEFAULT: tokens.colors.semantic.success.light,
+          dark: tokens.colors.semantic.success.dark,
+        },
+        'warning': {
+          DEFAULT: tokens.colors.semantic.warning.light,
+          dark: tokens.colors.semantic.warning.dark,
+        },
+        'danger': {
+          DEFAULT: tokens.colors.semantic.danger.light,
+          dark: tokens.colors.semantic.danger.dark,
+        },
+      },
+      fontSize: tokens.typography.fontSize,
+      fontWeight: tokens.typography.fontWeight,
+      lineHeight: tokens.typography.lineHeight,
+      spacing: tokens.spacing,
+      borderRadius: tokens.radius,
+      boxShadow: tokens.shadow,
+      transitionDuration: tokens.duration,
     },
   },
   plugins: [],
 };
+

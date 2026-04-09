@@ -8,7 +8,7 @@
   }
 
   body {
-    @apply h-full bg-slate-50 dark:bg-dark-950 text-slate-900 dark:text-cream-100;
+    @apply h-full bg-bg dark:bg-bg-dark text-text dark:text-text-dark;
   }
 
   #root {
