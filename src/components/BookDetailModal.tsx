@@ -37,6 +37,7 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
   });
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [sessionIdToDelete, setSessionIdToDelete] = useState<string | null>(null);
+  const [sessionInputMode, setSessionInputMode] = useState<'delta' | 'page'>('delta');
 
   useEffect(() => {
     loadBookData();
@@ -64,7 +65,20 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
     if (!user || isSaving) return;
 
     setIsSaving(true);
-    const pagesRead = parseInt(sessionData.pages_read);
+    const inputValue = parseInt(sessionData.pages_read);
+    
+    // Calculate actual pages read based on mode
+    let pagesRead = inputValue;
+    if (sessionInputMode === 'page') {
+      pagesRead = inputValue - book.current_page;
+    }
+
+    if (pagesRead <= 0) {
+      toast('Valor inválido para o progresso', 'error');
+      setIsSaving(false);
+      return;
+    }
+
     const newPage = book.current_page + pagesRead;
     const today = getLocalDateISO();
 
@@ -318,20 +332,55 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
 
             {showAddSession && (
               <form onSubmit={handleAddSession} className="bg-slate-50 dark:bg-dark-950 rounded-[2.5rem] p-8 border border-slate-200 dark:border-dark-800 space-y-6 shadow-2xl animate-in slide-in-from-top-4 duration-500">
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between pb-2 border-b border-slate-200 dark:border-dark-800/50">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Método de registro</span>
+                  <div className="flex bg-white dark:bg-dark-900 p-1 rounded-2xl border border-slate-200 dark:border-dark-800">
+                    <button
+                      type="button"
+                      onClick={() => setSessionInputMode('delta')}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${sessionInputMode === 'delta'
+                        ? 'bg-slate-900 dark:bg-cream-100 text-white dark:text-dark-950 shadow-lg'
+                        : 'text-slate-500 dark:text-cream-200/40 hover:text-slate-700'
+                        }`}
+                    >
+                      Páginas Lidas
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSessionInputMode('page')}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${sessionInputMode === 'page'
+                        ? 'bg-slate-900 dark:bg-cream-100 text-white dark:text-dark-950 shadow-lg'
+                        : 'text-slate-500 dark:text-cream-200/40 hover:text-slate-700'
+                        }`}
+                    >
+                      Parei na Página
+                    </button>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="pages_read" className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3 ml-1">
-                      Páginas Lidas *
+                      {sessionInputMode === 'delta' ? 'Quanto você leu?' : 'Parei na página:'} *
                     </label>
                     <input
                       id="pages_read"
                       type="number"
                       value={sessionData.pages_read}
                       onChange={(e) => setSessionData({ ...sessionData, pages_read: e.target.value })}
+                      placeholder={sessionInputMode === 'delta' ? 'Ex: 25' : `Ex: ${book.current_page + 25}`}
                       className="w-full px-5 py-4 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black text-xl transition-all"
                       required
-                      min="1"
+                      min={sessionInputMode === 'page' ? book.current_page + 1 : 1}
                     />
+                    {sessionData.pages_read && (
+                      <p className="mt-2 ml-1 text-[10px] font-bold text-slate-400 dark:text-cream-200/20 uppercase tracking-widest animate-in fade-in slide-in-from-left-2 transition-all">
+                        {sessionInputMode === 'delta' 
+                          ? `Você irá para a página ${book.current_page + parseInt(sessionData.pages_read)}`
+                          : `Você leu ${parseInt(sessionData.pages_read) - book.current_page} páginas nesta sessão`
+                        }
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label htmlFor="duration_minutes" className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-3 ml-1">
