@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
-import { X, Edit2, BookOpen, Star, Calendar, FileText, TrendingUp, Plus } from 'lucide-react';
+import { X, Edit2, BookOpen, Star, Calendar, FileText, TrendingUp, Plus, Trash2, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { getLocalDateISO, getLocalISOString } from '../lib/dateUtils';
 import { Book, BOOK_STATUS_METADATA, BookStatus } from '../types/book';
 import { useToast } from '../contexts/ToastContext';
+import { sessionsService } from '../services/sessionsService';
+import ConfirmDialog from './ConfirmDialog';
 
 interface BookDetailModalProps {
   book: Book;
   onClose: () => void;
   onEdit: () => void;
-  onBookUpdated?: () => void; // Added to replace reloads
+  onBookUpdated?: () => void;
 }
 
 export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }: BookDetailModalProps) {
@@ -25,6 +27,16 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
     notes: '',
   });
   const [isSaving, setIsSaving] = useState(false);
+
+  // States for Edit / Delete
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [editSessionData, setEditSessionData] = useState({
+    pages_read: '',
+    duration_minutes: '',
+    notes: '',
+  });
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [sessionIdToDelete, setSessionIdToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadBookData();
@@ -78,7 +90,6 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
             status: newStatus,
             completed_at: isCompleted ? getLocalISOString() : book.completed_at,
             updated_at: getLocalISOString(),
-            // Ensure started_at is set if it was not_started or want_to_read
             started_at: (book.status === 'not_started' || book.status === 'want_to_read') ? today : book.started_at,
           })
           .eq('id', book.id),
@@ -88,16 +99,69 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
       setSessionData({ pages_read: '', duration_minutes: '', notes: '' });
       await loadBookData();
 
-      // Notify parent to refresh data instead of reloading page
-      if (onBookUpdated) {
-        onBookUpdated();
-      }
+      if (onBookUpdated) onBookUpdated();
       toast('Sessão registrada com sucesso!', 'success');
     } catch (error) {
       console.error('Error adding session:', error);
       toast('Erro ao registrar sessão', 'error');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleEditSession = (session: any) => {
+    setEditingSessionId(session.id);
+    setEditSessionData({
+      pages_read: session.pages_read.toString(),
+      duration_minutes: session.duration_minutes.toString(),
+      notes: session.notes || '',
+    });
+  };
+
+  const handleUpdateSession = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSessionId || isSaving) return;
+
+    setIsSaving(true);
+    try {
+      await sessionsService.updateSession(editingSessionId, {
+        pages_read: parseInt(editSessionData.pages_read),
+        duration_minutes: parseInt(editSessionData.duration_minutes),
+        notes: editSessionData.notes || null,
+      });
+
+      setEditingSessionId(null);
+      await loadBookData();
+      if (onBookUpdated) onBookUpdated();
+      toast('Sessão atualizada com sucesso!', 'success');
+    } catch (error) {
+      console.error('Error updating session:', error);
+      toast('Erro ao atualizar sessão', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteSession = (sessionId: string) => {
+    setSessionIdToDelete(sessionId);
+    setShowConfirmDelete(true);
+  };
+
+  const confirmDeleteSession = async () => {
+    if (!sessionIdToDelete) return;
+    setIsSaving(true);
+    try {
+      await sessionsService.deleteSession(sessionIdToDelete);
+      await loadBookData();
+      if (onBookUpdated) onBookUpdated();
+      toast('Sessão excluída com sucesso!', 'success');
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      toast('Erro ao excluir sessão', 'error');
+    } finally {
+      setIsSaving(false);
+      setShowConfirmDelete(false);
+      setSessionIdToDelete(null);
     }
   };
 
@@ -151,7 +215,7 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
               />
             ) : (
               <div className="w-48 h-72 bg-slate-100 dark:bg-dark-950 rounded-2xl flex items-center justify-center mx-auto md:mx-0 border-4 border-dashed border-slate-200 dark:border-dark-800">
-                < BookOpen className="w-16 h-16 text-slate-200 dark:text-dark-800" />
+                <BookOpen className="w-16 h-16 text-slate-200 dark:text-dark-800" />
               </div>
             )}
 
@@ -325,28 +389,113 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
             ) : (
               <div className="space-y-4">
                 {sessions.map((session) => (
-                  <div key={session.id} className="bg-white dark:bg-dark-950 rounded-2xl p-6 border border-slate-200 dark:border-dark-800 hover:shadow-md transition-shadow group">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-dark-900 flex items-center justify-center border border-slate-100 dark:border-dark-800">
-                          <TrendingUp className="w-5 h-5 text-slate-400 dark:text-cream-200/20" />
+                  <div key={session.id} className="bg-white dark:bg-dark-950 rounded-2xl p-6 border border-slate-200 dark:border-dark-800 hover:shadow-md transition-shadow group relative">
+                    {editingSessionId === session.id ? (
+                      <form onSubmit={handleUpdateSession} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-2 ml-1">
+                              Pág. Lidas
+                            </label>
+                            <input
+                              type="number"
+                              value={editSessionData.pages_read}
+                              onChange={(e) => setEditSessionData({ ...editSessionData, pages_read: e.target.value })}
+                              className="w-full px-3 py-2 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black text-base transition-all"
+                              required
+                              min="1"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-2 ml-1">
+                              Duração (min)
+                            </label>
+                            <input
+                              type="number"
+                              value={editSessionData.duration_minutes}
+                              onChange={(e) => setEditSessionData({ ...editSessionData, duration_minutes: e.target.value })}
+                              className="w-full px-3 py-2 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-black text-base transition-all"
+                              required
+                              min="1"
+                            />
+                          </div>
                         </div>
                         <div>
-                          <p className="text-base font-black text-slate-900 dark:text-cream-50 leading-tight">
-                            {session.pages_read} <span className="text-xs font-bold opacity-30 uppercase tracking-widest ml-1">páginas</span>
-                          </p>
-                          <p className="text-[10px] font-bold text-slate-500 dark:text-cream-200/20 uppercase tracking-[0.15em] mt-1">
-                            {session.duration_minutes} min • {new Date(session.session_date + 'T12:00:00').toLocaleDateString('pt-BR')}
-                          </p>
+                          <label className="block text-[10px] uppercase font-black text-slate-500 dark:text-cream-200/20 tracking-[0.2em] mb-2 ml-1">
+                            Notas
+                          </label>
+                          <textarea
+                            value={editSessionData.notes}
+                            onChange={(e) => setEditSessionData({ ...editSessionData, notes: e.target.value })}
+                            className="w-full px-3 py-2 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-cream-100 dark:text-cream-50 font-medium text-sm transition-all resize-none"
+                            rows={2}
+                          />
                         </div>
-                      </div>
-                    </div>
-                    {session.notes && (
-                      <div className="mt-4 pt-4 border-t border-slate-50 dark:border-dark-900">
-                        <p className="text-sm font-medium text-slate-600 dark:text-cream-200/60 leading-relaxed italic">
-                          "{session.notes}"
-                        </p>
-                      </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setEditingSessionId(null)}
+                            className="flex-1 px-4 py-2 bg-slate-50 dark:bg-dark-800 text-slate-500 dark:text-cream-200/40 rounded-xl hover:bg-slate-100 dark:hover:bg-dark-700 transition-all font-black text-[10px] uppercase tracking-widest"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={isSaving}
+                            className="flex-1 px-4 py-2 bg-cream-100 dark:bg-cream-100 text-dark-950 rounded-xl hover:bg-cream-50 transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5"
+                          >
+                            {isSaving ? '...' : <><Check className="w-3.5 h-3.5" /> Salvar</>}
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <>
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-dark-900 flex items-center justify-center border border-slate-100 dark:border-dark-800">
+                              <TrendingUp className="w-5 h-5 text-slate-400 dark:text-cream-200/20" />
+                            </div>
+                            <div>
+                              <p className="text-base font-black text-slate-900 dark:text-cream-50 leading-tight">
+                                {session.pages_read} <span className="text-xs font-bold opacity-30 uppercase tracking-widest ml-1">páginas</span>
+                              </p>
+                              <p className="text-[10px] font-bold text-slate-500 dark:text-cream-200/20 uppercase tracking-[0.15em] mt-1">
+                                {session.duration_minutes} min • {new Date(session.session_date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-2 group-hover:translate-x-0">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditSession(session);
+                              }}
+                              className="p-2.5 bg-slate-50 dark:bg-dark-900 text-slate-500 dark:text-cream-200/40 rounded-xl hover:bg-cream-100 hover:text-dark-950 transition-all border border-slate-100 dark:border-dark-800 shadow-sm"
+                              title="Editar sessão"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSession(session.id);
+                              }}
+                              className="p-2.5 bg-slate-50 dark:bg-dark-900 text-slate-500 dark:text-cream-200/40 rounded-xl hover:bg-red-500 hover:text-white transition-all border border-slate-100 dark:border-dark-800 shadow-sm"
+                              title="Excluir sessão"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                        {session.notes && (
+                          <div className="mt-4 pt-4 border-t border-slate-50 dark:border-dark-900">
+                            <p className="text-sm font-medium text-slate-600 dark:text-cream-200/60 leading-relaxed italic">
+                              "{session.notes}"
+                            </p>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 ))}
@@ -354,6 +503,19 @@ export default function BookDetailModal({ book, onClose, onEdit, onBookUpdated }
             )}
           </div>
         </div>
+        
+        <ConfirmDialog
+          isOpen={showConfirmDelete}
+          title="Excluir Sessão"
+          message="Tem certeza que deseja excluir esta sessão de leitura? O progresso do livro será recalculado."
+          onConfirm={confirmDeleteSession}
+          onCancel={() => {
+            setShowConfirmDelete(false);
+            setSessionIdToDelete(null);
+          }}
+          confirmLabel="Excluir"
+          type="danger"
+        />
       </div>
     </div>
   );
